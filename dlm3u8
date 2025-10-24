@@ -39,7 +39,7 @@ fn_dlm3u8() {
   fi
 
   # generate aria2c.txt, file.m3u8 by index.m3u8
-  node "$(dirname "$0")/src/ppm3u8.js" index.m3u8 "$url"
+  node "$(dirname "$0")/js/ppm3u8.js" index.m3u8 "$url"
   if [[ $? -ne 0 ]]; then
     return 1
   fi
@@ -68,7 +68,7 @@ fn_dlm3u8() {
   fi
 
   # generate fixed.m3u8 by ffmpeg log
-  node "$(dirname "$0")/src/fixm3u8.js" "$input" "$ffmpeglog"
+  node "$(dirname "$0")/js/fixm3u8.js" "$input" "$ffmpeglog"
   if [[ -f "fixed.m3u8" ]]; then
     input="fixed.m3u8"
   fi

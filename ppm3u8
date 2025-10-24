@@ -1,2 +1,2 @@
 #!/bin/bash
-node "$(dirname "$0")/src/ppm3u8.js" "$@"
+node "$(dirname "$0")/jsc/ppm3u8.js" "$@"

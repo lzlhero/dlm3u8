@@ -41,7 +41,7 @@
   )
 
   :: generate aria2c.txt, file.m3u8 by index.m3u8
-  node "%~dp0\src\ppm3u8.js" index.m3u8 "%url%"
+  node "%~dp0\js\ppm3u8.js" index.m3u8 "%url%"
   if not %ERRORLEVEL%==0 (
     exit /b 1
   )
@@ -70,7 +70,7 @@
   )
 
   :: generate fixed.m3u8 by ffmpeg log
-  node "%~dp0\src\fixm3u8.js" "%input%" "%ffmpeglog%"
+  node "%~dp0\js\fixm3u8.js" "%input%" "%ffmpeglog%"
   if exist "fixed.m3u8" (
     set "input=fixed.m3u8"
   )

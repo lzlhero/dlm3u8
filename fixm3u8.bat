@@ -1,1 +1,1 @@
-@node "%~dp0\src\fixm3u8.js" %*
+@node "%~dp0\js\fixm3u8.js" %*

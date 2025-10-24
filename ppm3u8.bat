@@ -1,1 +1,1 @@
-@node "%~dp0\src\ppm3u8.js" %*
+@node "%~dp0\js\ppm3u8.js" %*

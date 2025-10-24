@@ -54,7 +54,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # generate fixed.m3u8 by ffmpeg log
-node "$(dirname "$0")/src/fixm3u8.js" "$input" "$ffmpeglog"
+node "$(dirname "$0")/js/fixm3u8.js" "$input" "$ffmpeglog"
 if [[ -f "fixed.m3u8" ]]; then
   input="fixed.m3u8"
 fi

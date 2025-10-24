@@ -56,7 +56,7 @@ if not %ERRORLEVEL%==0 (
 )
 
 :: generate fixed.m3u8 by ffmpeg log
-node "%~dp0\src\fixm3u8.js" "%input%" "%ffmpeglog%"
+node "%~dp0\js\fixm3u8.js" "%input%" "%ffmpeglog%"
 if exist "fixed.m3u8" (
   set "input=fixed.m3u8"
 )
