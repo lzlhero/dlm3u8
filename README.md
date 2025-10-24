@@ -12,7 +12,6 @@ First, [**aria2**](https://aria2.github.io/), [**Node.js**](https://nodejs.org),
 
 Then, [download](https://github.com/lzlhero/dlm3u8/archive/refs/heads/master.zip) the dlm3u8 zip package and extract it to a folder on your computer.
 
-
 ## Usage
 **dlm3u8.bat** (Windows) and **dlm3u8** (macOS and Linux, need `chmod 755 dlm3u8`) is the downloader.
 
