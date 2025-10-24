@@ -107,7 +107,11 @@
 if "%~1"=="" (
   echo Usage: %~nx0 m3u8-url [output.mp4]
   echo        %~nx0 -i list.txt
-  echo Based on: aria2, Node.js, and FFmpeg. These dependencies must be installed and configured in the PATH environment variable.
+  echo.
+  echo Note: The input list file is used for batch downloading m3u8 files. Each line represents a download task, with the URL and output file separated by one or more whitespace characters.
+  echo.
+  echo %~nx0 is based on aria2, Node.js, and FFmpeg. These dependencies must be installed and configured in the PATH environment variable.
+  echo.
   exit /b 1
 )
 
