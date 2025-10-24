@@ -107,7 +107,7 @@
 if "%~1"=="" (
   echo Usage: %~nx0 m3u8-url [output.mp4]
   echo        %~nx0 -i list.txt
-  echo Based on: aria2c, node, and ffmpeg. These dependencies must be installed and configured in the PATH environment variable.
+  echo Based on: aria2, Node.js, and FFmpeg. These dependencies must be installed and configured in the PATH environment variable.
   exit /b 1
 )
 
