@@ -52,7 +52,7 @@
   aria2c -i aria2c.txt
   if not %ERRORLEVEL%==0 (
     echo.
-    echo Download "%url%" related files failed.
+    echo Download "%url%" related files errors.
     exit /b 1
   )
 
@@ -64,6 +64,10 @@
   echo.
   echo Generating "%ffmpeglog%" for advertisement removal...
   ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy -f null NUL > "%ffmpeglog%" 2>&1
+  if not %ERRORLEVEL%==0 (
+    echo Error: Generating "%ffmpeglog%" file errors.
+    exit /b 1
+  )
 
   :: generate fixed.m3u8 by ffmpeg log
   node "%~dp0\src\fixm3u8.js" "%input%" "%ffmpeglog%"
@@ -75,12 +79,10 @@
   echo.
   echo Merging "%output%" based on "%input%"...
   ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy "%output%" > ffmpeg.2.log 2>&1
-
-  :: display output result
-  if exist "%output%" (
-    echo Successfully wrote "%output%" file.
+  if %ERRORLEVEL%==0 (
+    echo Successfully merge "%output%" file.
   ) else (
-    echo Error: Failed to write "%output%" file.
+    echo Error: Merging "%output%" file errors.
     exit /b 1
   )
   exit /b 0

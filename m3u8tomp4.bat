@@ -50,6 +50,10 @@ set "input=%~1"
 set "ffmpeglog=ffmpeg.1.log"
 echo Generating "%ffmpeglog%" for advertisement removal...
 ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy -f null NUL > "%ffmpeglog%" 2>&1
+if not %ERRORLEVEL%==0 (
+  echo Error: Generating "%ffmpeglog%" file errors.
+  exit /b 1
+)
 
 :: generate fixed.m3u8 by ffmpeg log
 node "%~dp0\src\fixm3u8.js" "%input%" "%ffmpeglog%"
@@ -61,11 +65,9 @@ if exist "fixed.m3u8" (
 echo.
 echo Merging "%output%" based on "%input%"...
 ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy "%output%" > ffmpeg.2.log 2>&1
-
-:: display output result
-if exist "%output%" (
-  echo Successfully wrote "%output%" file.
+if %ERRORLEVEL%==0 (
+  echo Successfully merge "%output%" file.
 ) else (
-  echo Error: Failed to write "%output%" file.
+  echo Error: Merging "%output%" file errors.
   exit /b 1
 )
