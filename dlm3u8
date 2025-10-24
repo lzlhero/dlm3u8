@@ -91,7 +91,7 @@ fn_dlm3u8() {
 if [[ -z "$1" ]]; then
   echo "Usage: $(basename "$0") m3u8-url [output.mp4]"
   echo "       $(basename "$0") -i list.txt"
-  echo "Based on: aria2c, node and ffmpeg. They must be installed and configured in the PATH environment variable."
+  echo "Based on: aria2c, node, and ffmpeg. These dependencies must be installed and configured in the PATH environment variable."
   exit 1
 fi
 
