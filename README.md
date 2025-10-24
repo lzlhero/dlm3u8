@@ -8,12 +8,17 @@
 * **Ad Removal**: Automatically detects and removes advertisement segments from videos.
 
 ## Installation
-First, [**aria2**](https://aria2.github.io/), [**Node.js**](https://nodejs.org), and [**FFmpeg**](https://www.ffmpeg.org/) must be installed and configured in the `PATH` environment variable.
+First, [**aria2**](https://aria2.github.io/), [**Node.js**](https://nodejs.org), and [**FFmpeg**](https://www.ffmpeg.org/) must be installed and configured in the `PATH` environment variable. 
 
-Then, [download](https://github.com/lzlhero/dlm3u8/archive/refs/heads/master.zip) the dlm3u8 zip package and extract it to a folder on your computer.
+Then, [download](https://github.com/lzlhero/dlm3u8/archive/refs/heads/master.zip) the dlm3u8 zip package and extract it to a folder on your computer. Configure the dlm3u8 folder in the `PATH` environment variable also. 
+
+For macOS and Linux
+```
+chmod +x dlm3u8
+```
 
 ## Usage
-**dlm3u8.bat** (Windows) and **dlm3u8** (macOS and Linux, need `chmod 755 dlm3u8`) is the downloader.
+**dlm3u8** is the downloader commands.
 
 See usage information
 ```
