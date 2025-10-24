@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# display usage information
+if [[ -z "$1" ]]; then
+  echo "Usage: $(basename "$0") file.m3u8 [output.mp4]"
+  exit 1
+fi
+
+if [[ ! -f "$1" ]]; then
+  echo "Error: File \"$1\" not found."
+  exit 1
+fi
+
+# set mp4 output filename
+if [[ -z "$2" ]]; then
+  output="output.mp4"
+else
+  output="$2"
+fi
+while [[ "$output" == *"." ]]; do
+  output="${output%.}"
+done
+ext="$(echo "${output: -4}" | tr '[:upper:]' '[:lower:]')"
+if [[ "$ext" != ".mp4" ]]; then
+  output="${output}.mp4"
+fi
+
+# validate output file name
+if [[ ! -f "$output" ]]; then
+  touch "$output" >/dev/null 2>&1
+  if [[ $? -eq 0 ]]; then
+    rm -f "$output"
+  else
+    echo "Error: Invalid output file name or path in \"$output\""
+    exit 1
+  fi
+fi
+
+# remove last fixed.m3u8
+if [[ -f "fixed.m3u8" ]]; then
+  rm -f "fixed.m3u8"
+fi
+
+# set m3u8 input file name
+input="$1"
+
+# generate ffmpeg checking log
+ffmpeglog="ffmpeg.1.log"
+echo "Generating \"$ffmpeglog\" for advertisement removal..."
+ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy -f null /dev/null > "$ffmpeglog" 2>&1
+
+# generate fixed.m3u8 by ffmpeg log
+node "$(dirname "$0")/src/fixm3u8.js" "$input" "$ffmpeglog"
+if [[ -f "fixed.m3u8" ]]; then
+  input="fixed.m3u8"
+fi
+
+# merge all ts files to mp4 file
+echo
+echo "Merging \"$output\" based on \"$input\"..."
+ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy "$output" > ffmpeg.2.log 2>&1
+
+# display output result
+if [[ -f "$output" ]]; then
+  echo "Successfully wrote \"$output\" file."
+else
+  echo "Error: Failed to write \"$output\" file."
+  exit 1
+fi

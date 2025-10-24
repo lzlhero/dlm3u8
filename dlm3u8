@@ -1,0 +1,135 @@
+#!/bin/bash
+
+fn_dlm3u8() {
+  # set mp4 output file name
+  if [[ -z "$output" ]]; then
+    output="output.mp4"
+  fi
+  while [[ "$output" == *"." ]]; do
+    output="${output%.}"
+  done
+  ext="$(echo "${output: -4}" | tr '[:upper:]' '[:lower:]')"
+  if [[ "$ext" != ".mp4" ]]; then
+    output="${output}.mp4"
+  fi
+
+  # validate output file name
+  if [[ ! -f "$output" ]]; then
+    touch "$output" >/dev/null 2>&1
+    if [[ $? -eq 0 ]]; then
+      rm -f "$output"
+    else
+      echo "Error: Invalid output file name or path in \"$output\""
+      return 1
+    fi
+  fi
+
+  # remove last fixed.m3u8
+  if [[ -f "fixed.m3u8" ]]; then
+    rm -f "fixed.m3u8"
+  fi
+
+  # download m3u8 file
+  aria2c --allow-overwrite=true --continue=false --split=1 -q -o index.m3u8 "$url" >/dev/null 2>&1
+  if [[ $? -eq 0 ]]; then
+    echo "Download \"$url\" as \"index.m3u8\" OK."
+  else
+    echo "Error: Download \"$url\" failed."
+    return 1
+  fi
+
+  # generate aria2c.txt, file.m3u8 by index.m3u8
+  node "$(dirname "$0")/src/ppm3u8.js" index.m3u8 "$url"
+  if [[ $? -ne 0 ]]; then
+    return 1
+  fi
+
+  # download related files by aria2c.txt
+  echo
+  echo "Starting to download all related files..."
+  aria2c -i aria2c.txt
+  if [[ $? -ne 0 ]]; then
+    echo
+    echo "Download \"$url\" related files failed."
+    return 1
+  fi
+
+  # set m3u8 input file name
+  input="file.m3u8"
+
+  # generate ffmpeg checking log
+  ffmpeglog="ffmpeg.1.log"
+  echo
+  echo "Generating \"$ffmpeglog\" for advertisement removal..."
+  ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy -f null /dev/null > "$ffmpeglog" 2>&1
+
+  # generate fixed.m3u8 by ffmpeg log
+  node "$(dirname "$0")/src/fixm3u8.js" "$input" "$ffmpeglog"
+  if [[ -f "fixed.m3u8" ]]; then
+    input="fixed.m3u8"
+  fi
+
+  # merge all ts files to mp4 file
+  echo
+  echo "Merging \"$output\" based on \"$input\"..."
+  ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy "$output" > ffmpeg.2.log 2>&1
+
+  # display output result
+  if [[ -f "$output" ]]; then
+    echo "Successfully wrote \"$output\" file."
+  else
+    echo "Error: Failed to write \"$output\" file."
+    return 1
+  fi
+  return 0
+}
+
+#main
+# display usage information
+if [[ -z "$1" ]]; then
+  echo "Usage: $(basename "$0") m3u8-url [output.mp4]"
+  echo "       $(basename "$0") -i list.txt"
+  echo "Based on: aria2c, node and ffmpeg. They must be installed and configured in the PATH environment variable."
+  exit 1
+fi
+
+# check command line arguments
+if [[ "$1" != "-i" ]]; then
+  # normal
+  url="$1"
+  output="$2"
+
+  fn_dlm3u8
+else
+  # input list file
+  if [[ -z "$2" ]]; then
+    echo "Error: Require an input list file."
+    exit 1
+  fi
+
+  if [[ ! -f "$2" ]]; then
+    echo "Error: File \"$2\" not found."
+    exit 1
+  fi
+
+  count=0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    # trim left and right of current line
+    line="${line#"${line%%[^[:space:]\"]*}"}"
+    line="${line%"${line##*[^[:space:]\"]}"}"
+
+    # parse url and output fields
+    if [[ -n "$line" ]] && [[ $line =~ ^([^[:space:]\"]+)([[:space:]\"]+)?(.+)?$ ]]; then
+      url="${BASH_REMATCH[1]}"
+      if [[ -z "${BASH_REMATCH[3]}" ]]; then
+        ((count++))
+        output=$(printf "%03d" "$count")
+      else
+        output="${BASH_REMATCH[3]}"
+      fi
+
+      echo "----------------------------------------"
+      fn_dlm3u8 < /dev/null
+    fi
+  done < "$2"
+fi
