@@ -108,7 +108,7 @@ if "%~1"=="" (
   echo Usage: dlm3u8 m3u8-url [output.mp4]
   echo        dlm3u8 -i list.txt
   echo.
-  echo Note: The input list file is used for batch downloading m3u8 files. Each line represents a download task, with the URL and output file separated by one or more whitespace characters. When no output file is specified, the output files will be named sequentially as 001.mp4, 002.mp4, 003.mp4, and so on.
+  echo Note: The input list file is used for batch downloading m3u8 URLs. Each line represents a download task, with the URL and output file separated by one or more whitespace characters. When no output file is specified, the output files will be named sequentially as 001.mp4, 002.mp4, 003.mp4, and so on.
   echo.
   echo dlm3u8 is based on aria2, Node.js, and FFmpeg. These dependencies must be installed and configured in the PATH environment variable.
   echo.
