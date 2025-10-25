@@ -4,8 +4,8 @@
 **dlm3u8** is a command-line m3u8 downloader for Windows, macOS, and Linux. It relies on **aria2**, **Node.js**, and **FFmpeg**.
 
 ## Features
-* **Concurrent Download**: Uses **aria2** for fast, resumable video segment downloads.
-* **Ad Removal**: Uses **Node.js** and **FFmpeg** to automatically detect and remove advertisement segments from videos.
+* **Concurrent Download**: Uses aria2 for fast, resumable video segment downloads.
+* **Ad Removal**: Automatically detects and removes advertisement segments from videos.
 * **Batch Download**: Supports downloading multiple m3u8 URLs from an input list file.
 
 ## Installation
