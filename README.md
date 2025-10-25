@@ -34,7 +34,7 @@ dlm3u8
 ```
 dlm3u8 m3u8-url [output.mp4]
 ```
-**Note**: The output filename can omit the `.mp4` extension. The saved file will automatically have the `.mp4` extension added. For example, if the specified output name is `abc`, the saved file will be `abc.mp4`.
+**Note**: If no output file is specified, the program uses `output.mp4` as the default filename. You may omit the `.mp4` extension — it will be added automatically. For example, specifying `abc` as the output name will save the file as `abc.mp4`.
 
 **Download multiple m3u8 files:**
 ```
