@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Copyright (c) 2025 lzlhero
+# Licensed under the GNU General Public License v3.0 (GPL-3.0)
+
 # display usage information
 if [[ -z "$1" ]]; then
   echo "Usage: $(basename "$0") file.m3u8 [output.mp4]"

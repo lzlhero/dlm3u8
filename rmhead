@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Copyright (c) 2025 lzlhero
+# Licensed under the GNU General Public License v3.0 (GPL-3.0)
+
 if [ -z "$1" ]; then
   echo "Usage: $(basename "$0") filename bytes-length"
   exit 1

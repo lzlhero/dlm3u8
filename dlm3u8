@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Copyright (c) 2025 lzlhero
+# Licensed under the GNU General Public License v3.0 (GPL-3.0)
+
 fn_dlm3u8() {
   # set mp4 output file name
   if [[ -z "$output" ]]; then
@@ -92,12 +95,13 @@ if [[ -z "$1" ]]; then
   echo "Usage: dlm3u8 m3u8-url [output.mp4]"
   echo "       dlm3u8 -i list.txt"
   echo
-  echo "Note: The input list file is used for batch downloading m3u8 URLs. Each line represents a download task, with the URL and output file separated by one or more whitespace characters. When no output file is specified, the output files will be named sequentially as 001.mp4, 002.mp4, 003.mp4, and so on."
+  echo "Note: The input list file is used for batch downloading m3u8 URLs. Each line represents a download task, with the URL and output file separated by one or more spaces or tabs. When no output file is specified, the output files will be named sequentially as 001.mp4, 002.mp4, 003.mp4, and so on."
   echo
-  echo "dlm3u8 is based on aria2, Node.js, and FFmpeg. These dependencies must be installed and configured in the PATH environment variable."
+  echo "dlm3u8 relies on aria2, Node.js, and FFmpeg. These tools must be installed and available in the PATH."
   echo
   echo "Author: lzlhero <lzlhero@gmail.com>"
   echo "Project: https://github.com/lzlhero/dlm3u8"
+  echo "License: GNU General Public License v3.0"
   echo
   exit 1
 fi
