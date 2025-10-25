@@ -29,12 +29,18 @@ Single m3u8 downloading
 ```
 dlm3u8 m3u8-url [output.mp4]
 ```
+**Note**: The output filename can omit the `.mp4` extension. The saved file will automatically have the `.mp4` extension added. For example, if the specified output name is `abc`, the saved file will be `abc.mp4`.
 
 Multiple m3u8 downloading
 ```
 dlm3u8 -i list.txt
 ```
-
+Example of list.txt:
+```
+https://example.com/1/index.m3u8 name1
+https://example.com/2/index.m3u8 name2
+https://example.com/3/index.m3u8 name3
+```
 **Note**: The input list file is used for batch downloading m3u8 URLs. Each line represents a download task, with the **URL** and **output file** separated by one or more **whitespace characters**. When no output file is specified, the output files will be named sequentially as `001.mp4`, `002.mp4`, `003.mp4`, and so on.
 
 ## Download
