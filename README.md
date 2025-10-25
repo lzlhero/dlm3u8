@@ -12,7 +12,7 @@ First, [aria2](https://aria2.github.io/), [Node.js](https://nodejs.org), and [FF
 
 Then, download the [dlm3u8 zip package](https://github.com/lzlhero/dlm3u8/archive/refs/heads/master.zip) and extract it to a folder on your computer. Add the dlm3u8 folder to the `PATH`.
 
-For macOS and Linux, make the following files executable:
+For macOS and Linux, make sure the following files are executable:
 ```
 chmod +x dlm3u8
 chmod +x m3u8tomp4
