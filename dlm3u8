@@ -3,6 +3,8 @@
 # Copyright (c) 2025 lzlhero
 # Licensed under the GNU General Public License v3.0 (GPL-3.0)
 
+trap 'exit 130' INT
+
 fn_dlm3u8() {
   # set mp4 output file name
   if [[ -z "$output" ]]; then
@@ -125,8 +127,13 @@ else
     exit 1
   fi
 
-  count=0
+  lines=()
   while IFS= read -r line || [[ -n "$line" ]]; do
+    lines+=("$line")
+  done < "$2"
+
+  count=0
+  for line in "${lines[@]}"; do
     # trim left and right of current line
     line="${line#"${line%%[^[:space:]\"]*}"}"
     line="${line%"${line##*[^[:space:]\"]}"}"
@@ -142,7 +149,7 @@ else
       fi
 
       echo "----------------------------------------"
-      fn_dlm3u8 < /dev/null
+      fn_dlm3u8
     fi
-  done < "$2"
+  done
 fi
