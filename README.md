@@ -5,8 +5,8 @@
 
 ## Features
 * **Concurrent Download**: Uses aria2 for fast, resumable video segment downloads.
-* **Ad Removal**: Automatically detects and removes advertisement segments from videos.
 * **Batch Download**: Supports downloading multiple m3u8 URLs from an input list file.
+* **Ad Removal**: Automatically detects and removes advertisement segments from videos.
 
 ## Installation
 First, [aria2](https://aria2.github.io/), [Node.js](https://nodejs.org), and [FFmpeg](https://www.ffmpeg.org/) must be installed and available in the `PATH`.
