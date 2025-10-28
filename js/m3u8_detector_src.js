@@ -1,12 +1,16 @@
 javascript: (function() {
+    if (document.getElementById('m3u8-detector-panel')) return;
+
     var debugMode = true;
+    var m3u8URL = '';
 
     function debug(msg) {
-        if (debugMode) console.log('[M3U8 Detector] ' + msg)
+        if (debugMode) console.log('[M3U8 Detector] ' + msg);
     }
 
-    function sendLink(url) {
-        urlInput.value = url.split('#')[0];
+    function saveURL(url) {
+        m3u8URL = url.split('#')[0];
+        copyButton.className = 'animation';
     }
 
     function scanForM3u8(text) {
@@ -14,44 +18,44 @@ javascript: (function() {
         var urlRegex = /"(?:url|src|file)"\s*:\s*"([^"]+\.m3u8[^"]*)"/gi;
         var match;
         while ((match = urlRegex.exec(text)) !== null) {
-            if (match[1]) sendLink(match[1])
+            if (match[1]) saveURL(match[1]);
         }
         var directRegex = /(https?:\/\/[^\s"']+\.m3u8[^\s"']*)/gi;
         while ((match = directRegex.exec(text)) !== null) {
-            if (match[1]) sendLink(match[1])
+            if (match[1]) saveURL(match[1]);
         }
     }
 
     function checkVideo(video) {
         if (!video) return;
         if (video.src && video.src.indexOf('.m3u8') > -1) {
-            sendLink(video.src)
+            saveURL(video.src);
         }
         var sources = video.querySelectorAll('source');
         for (var i = 0; i < sources.length; i++) {
             if (sources[i].src && sources[i].src.indexOf('.m3u8') > -1) {
-                sendLink(sources[i].src)
+                saveURL(sources[i].src);
             }
         }
         for (var attr in video.dataset) {
             if (typeof video.dataset[attr] === 'string' && video.dataset[attr].indexOf('.m3u8') > -1) {
-                sendLink(video.dataset[attr])
+                saveURL(video.dataset[attr]);
             }
         }
     }
 
     function scanAllVideos() {
         debug('Scanning video elements');
-        document.querySelectorAll('video').forEach(checkVideo)
+        document.querySelectorAll('video').forEach(checkVideo);
     }
 
     function scanPageScripts() {
         debug('Scanning page scripts');
         document.querySelectorAll('script').forEach(function(script) {
             if (script.textContent) {
-                scanForM3u8(script.textContent)
+                scanForM3u8(script.textContent);
             }
-        })
+        });
     }
 
     function deepScanPage() {
@@ -59,98 +63,151 @@ javascript: (function() {
         document.querySelectorAll('*').forEach(function(el) {
             for (var attr in el.dataset) {
                 if (typeof el.dataset[attr] === 'string' && el.dataset[attr].indexOf('.m3u8') > -1) {
-                    sendLink(el.dataset[attr])
+                    saveURL(el.dataset[attr]);
                 }
-            } ['src', 'href', 'data', 'poster'].forEach(function(attr) {
+            }
+
+            ['src', 'href', 'data', 'poster'].forEach(function(attr) {
                 if (el[attr] && typeof el[attr] === 'string' && el[attr].indexOf('.m3u8') > -1) {
-                    sendLink(el[attr])
+                    saveURL(el[attr]);
                 }
-            })
-        })
+            });
+        });
     }
+
     var originalOpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function(method, url) {
         if (url && typeof url === 'string' && url.indexOf('.m3u8') > -1) {
-            sendLink(url)
+            saveURL(url);
         }
-        return originalOpen.apply(this, arguments)
+        return originalOpen.apply(this, arguments);
     };
+
     var originalFetch = window.fetch;
     window.fetch = function(input) {
         try {
             var url = '';
             if (typeof input === 'string') {
-                url = input
+                url = input;
             } else if (input instanceof Request) {
-                url = input.url
+                url = input.url;
             }
             if (url && url.indexOf('.m3u8') > -1) {
-                sendLink(url)
+                saveURL(url);
             }
         } catch (e) {
-            debug('Error in fetch override: ' + e.message)
+            debug('Error in fetch override: ' + e.message);
         }
-        return originalFetch.apply(this, arguments)
+        return originalFetch.apply(this, arguments);
     };
+
     try {
         var observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
                 if (mutation.type === 'childList') {
                     mutation.addedNodes.forEach(function(node) {
                         if (node.nodeName === 'VIDEO') {
-                            checkVideo(node)
+                            checkVideo(node);
                         } else if (node.querySelectorAll) {
-                            node.querySelectorAll('video').forEach(checkVideo)
+                            node.querySelectorAll('video').forEach(checkVideo);
                         }
-                    })
+                    });
                 } else if (mutation.type === 'attributes') {
                     if (mutation.target.nodeName === 'VIDEO') {
-                        checkVideo(mutation.target)
+                        checkVideo(mutation.target);
                     }
                 }
-            })
+            });
         });
+
         observer.observe(document.body, {
             childList: true,
             subtree: true,
             attributes: true,
             attributeFilter: ['src', 'data-src']
         });
-        debug('DOM observer started')
+
+        debug('DOM observer started');
     } catch (e) {
-        debug('Error setting up observer: ' + e.message)
+        debug('Error setting up observer: ' + e.message);
     }
-    var indicator = document.createElement('div');
-    indicator.style.cssText = 'position:fixed;top:10px;right:10px;padding:10px;background:rgba(0,123,255,0.8);color:white;border-radius:5px;z-index:9999;font-size:14px;';
-    indicator.textContent = 'M3U8 Detector Active';
-    document.body.appendChild(indicator);
+
+    var style = document.createElement('style');
+    style.textContent = `
+        #m3u8-detector-panel {
+            position:fixed;
+            top:10px;
+            right:10px;
+            padding:10px;
+            border-radius:5px;
+            color:white;
+            background:#007bff;
+            z-index:9999;
+            font-size:14px;
+            opacity:0.7;
+        }
+
+        #m3u8-detector-panel button {
+            display:block;
+            margin-top:5px;
+            padding:3px 8px;
+            width:100%;
+            color:#007bff;
+            background:#fff;
+            border:none;
+            border-radius:3px;
+            cursor:pointer;
+        }
+
+        #m3u8-detector-panel button.disabled {
+            color:#002b55;
+            background:#999;
+            cursor:not-allowed;
+        }
+
+        @keyframes fadeInOut {
+            0%   { color:#7bbbff; background:#fff; }
+            50%  { color:#fff; background:#7bbbff; }
+            100% { color:#7bbbff; background:#fff; }
+        }
+
+        #m3u8-detector-panel button.animation {
+            animation: fadeInOut 1.5s ease-in-out 2;
+        }
+    `;
+    document.head.appendChild(style);
+
+    var panel = document.createElement('div');
+    panel.id = 'm3u8-detector-panel';
+    document.body.appendChild(panel);
+
     var scanButton = document.createElement('button');
     scanButton.textContent = 'Force Scan';
-    scanButton.style.cssText = 'display:block;margin-top:5px;padding:3px 8px;background:#fff;color:#007bff;border:none;border-radius:3px;cursor:pointer;';
     scanButton.onclick = function() {
         scanAllVideos();
         scanPageScripts();
-        deepScanPage()
+        deepScanPage();
     };
-    indicator.appendChild(scanButton);
-    var urlInput = document.createElement('input');
-    urlInput.type = 'text';
-    urlInput.value = 'Focus to Copy M3U8 URL';
-    urlInput.style.cssText = 'display:block;margin-top:5px;padding:3px;background:#fff;color:#000;border:none;border-radius:3px;';
-    urlInput.onfocus = function() {
-        this.select();
+    panel.appendChild(scanButton);
+
+    var copyButton = document.createElement('button');
+    copyButton.textContent = 'Copy URL';
+    copyButton.className = 'disabled';
+    copyButton.onanimationend = function() {
+        this.className = '';
+    };
+    copyButton.onclick = function() {
+        if (!m3u8URL) return;
+
         if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(this.value);
-        } else {
-            document.execCommand('copy');
+            navigator.clipboard.writeText(m3u8URL);
         }
     };
-    indicator.appendChild(urlInput);
+    panel.appendChild(copyButton);
+
     scanAllVideos();
     scanPageScripts();
     setTimeout(deepScanPage, 2000);
-    setTimeout(function() {
-        indicator.style.opacity = '0.7'
-    }, 30000);
-    debug('M3U8 detector initialized')
+
+    debug('M3U8 detector initialized');
 })();
