@@ -11,6 +11,7 @@ javascript: (function() {
     function saveURL(url) {
         m3u8URL = url.split('#')[0];
         copyButton.className = 'animation';
+        copyButton.disabled = false;
     }
 
     function scanForM3u8(text) {
@@ -159,12 +160,6 @@ javascript: (function() {
             cursor:pointer;
         }
 
-        #m3u8-detector-panel button.disabled {
-            color:#002b55;
-            background:#999;
-            cursor:not-allowed;
-        }
-
         @keyframes fadeInOut {
             0%   { color:#7bbbff; background:#fff; }
             50%  { color:#fff; background:#7bbbff; }
@@ -173,6 +168,16 @@ javascript: (function() {
 
         #m3u8-detector-panel button.animation {
             animation: fadeInOut 1.5s ease-in-out 2;
+        }
+
+        #m3u8-detector-panel button[disabled] {
+            color:#002b55;
+            background:#999;
+            cursor:not-allowed;
+        }
+
+        #m3u8-detector-panel button:active {
+            color:red;
         }
     `;
     document.head.appendChild(style);
@@ -192,13 +197,11 @@ javascript: (function() {
 
     var copyButton = document.createElement('button');
     copyButton.textContent = 'Copy URL';
-    copyButton.className = 'disabled';
+    copyButton.disabled = true;
     copyButton.onanimationend = function() {
         this.className = '';
     };
     copyButton.onclick = function() {
-        if (!m3u8URL) return;
-
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(m3u8URL);
         }
