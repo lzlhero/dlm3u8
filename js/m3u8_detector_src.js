@@ -8,10 +8,18 @@ javascript: (function() {
         if (debugMode) console.log('[M3U8 Detector] ' + msg);
     }
 
+    var timer;
     function saveURL(url) {
-        m3u8URL = url.split('#')[0];
-        copyButton.className = 'animation';
-        copyButton.disabled = false;
+        if (timer) {
+            window.clearTimeout(timer);
+        }
+
+        timer = window.setTimeout(function() {
+            m3u8URL = url.split('#')[0];
+            debug('M3U8 URL: ' + m3u8URL);
+            copyButton.className = 'animation';
+            copyButton.disabled = false;
+        }, 1000);
     }
 
     function scanForM3u8(text) {
@@ -167,7 +175,7 @@ javascript: (function() {
         }
 
         #m3u8-detector-panel button.animation {
-            animation: fadeInOut 1.5s ease-in-out 2;
+            animation: fadeInOut 1s ease-in-out 1;
         }
 
         #m3u8-detector-panel button[disabled] {
@@ -210,7 +218,7 @@ javascript: (function() {
 
     scanAllVideos();
     scanPageScripts();
-    setTimeout(deepScanPage, 2000);
+    window.setTimeout(deepScanPage, 2000);
 
     debug('M3U8 detector initialized');
 })();
