@@ -11,13 +11,14 @@ javascript: (function() {
     if (debugMode) console.log('[M3U8 Detector] ' + msg);
   }
 
-  var timer;
+  var timer = 0;
   function saveURL(url) {
     if (timer) {
       window.clearTimeout(timer);
     }
 
     timer = window.setTimeout(function() {
+      timer = 0;
       m3u8URL = url.split('#')[0];
       debug('M3U8 URL: ' + m3u8URL);
       copyButton.className = 'animation';
