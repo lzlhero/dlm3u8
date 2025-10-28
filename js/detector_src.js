@@ -1,224 +1,224 @@
 javascript: (function() {
-    if (document.getElementById('m3u8-detector-panel')) return;
+  if (document.getElementById('m3u8-detector-panel')) return;
 
-    var debugMode = true;
-    var m3u8URL = '';
+  var debugMode = true;
+  var m3u8URL = '';
 
-    function debug(msg) {
-        if (debugMode) console.log('[M3U8 Detector] ' + msg);
+  function debug(msg) {
+    if (debugMode) console.log('[M3U8 Detector] ' + msg);
+  }
+
+  var timer;
+  function saveURL(url) {
+    if (timer) {
+      window.clearTimeout(timer);
     }
 
-    var timer;
-    function saveURL(url) {
-        if (timer) {
-            window.clearTimeout(timer);
-        }
+    timer = window.setTimeout(function() {
+      m3u8URL = url.split('#')[0];
+      debug('M3U8 URL: ' + m3u8URL);
+      copyButton.className = 'animation';
+      copyButton.disabled = false;
+    }, 1000);
+  }
 
-        timer = window.setTimeout(function() {
-            m3u8URL = url.split('#')[0];
-            debug('M3U8 URL: ' + m3u8URL);
-            copyButton.className = 'animation';
-            copyButton.disabled = false;
-        }, 1000);
+  function scanForM3u8(text) {
+    if (!text || typeof text !== 'string') return;
+    var urlRegex = /"(?:url|src|file)"\s*:\s*"([^"]+\.m3u8[^"]*)"/gi;
+    var match;
+    while ((match = urlRegex.exec(text)) !== null) {
+      if (match[1]) saveURL(match[1]);
     }
-
-    function scanForM3u8(text) {
-        if (!text || typeof text !== 'string') return;
-        var urlRegex = /"(?:url|src|file)"\s*:\s*"([^"]+\.m3u8[^"]*)"/gi;
-        var match;
-        while ((match = urlRegex.exec(text)) !== null) {
-            if (match[1]) saveURL(match[1]);
-        }
-        var directRegex = /(https?:\/\/[^\s"']+\.m3u8[^\s"']*)/gi;
-        while ((match = directRegex.exec(text)) !== null) {
-            if (match[1]) saveURL(match[1]);
-        }
+    var directRegex = /(https?:\/\/[^\s"']+\.m3u8[^\s"']*)/gi;
+    while ((match = directRegex.exec(text)) !== null) {
+      if (match[1]) saveURL(match[1]);
     }
+  }
 
-    function checkVideo(video) {
-        if (!video) return;
-        if (video.src && video.src.indexOf('.m3u8') > -1) {
-            saveURL(video.src);
-        }
-        var sources = video.querySelectorAll('source');
-        for (var i = 0; i < sources.length; i++) {
-            if (sources[i].src && sources[i].src.indexOf('.m3u8') > -1) {
-                saveURL(sources[i].src);
-            }
-        }
-        for (var attr in video.dataset) {
-            if (typeof video.dataset[attr] === 'string' && video.dataset[attr].indexOf('.m3u8') > -1) {
-                saveURL(video.dataset[attr]);
-            }
-        }
+  function checkVideo(video) {
+    if (!video) return;
+    if (video.src && video.src.indexOf('.m3u8') > -1) {
+      saveURL(video.src);
     }
-
-    function scanAllVideos() {
-        debug('Scanning video elements');
-        document.querySelectorAll('video').forEach(checkVideo);
+    var sources = video.querySelectorAll('source');
+    for (var i = 0; i < sources.length; i++) {
+      if (sources[i].src && sources[i].src.indexOf('.m3u8') > -1) {
+        saveURL(sources[i].src);
+      }
     }
-
-    function scanPageScripts() {
-        debug('Scanning page scripts');
-        document.querySelectorAll('script').forEach(function(script) {
-            if (script.textContent) {
-                scanForM3u8(script.textContent);
-            }
-        });
+    for (var attr in video.dataset) {
+      if (typeof video.dataset[attr] === 'string' && video.dataset[attr].indexOf('.m3u8') > -1) {
+        saveURL(video.dataset[attr]);
+      }
     }
+  }
 
-    function deepScanPage() {
-        debug('Deep scanning page');
-        document.querySelectorAll('*').forEach(function(el) {
-            for (var attr in el.dataset) {
-                if (typeof el.dataset[attr] === 'string' && el.dataset[attr].indexOf('.m3u8') > -1) {
-                    saveURL(el.dataset[attr]);
-                }
-            }
+  function scanAllVideos() {
+    debug('Scanning video elements');
+    document.querySelectorAll('video').forEach(checkVideo);
+  }
 
-            ['src', 'href', 'data', 'poster'].forEach(function(attr) {
-                if (el[attr] && typeof el[attr] === 'string' && el[attr].indexOf('.m3u8') > -1) {
-                    saveURL(el[attr]);
-                }
-            });
-        });
-    }
+  function scanPageScripts() {
+    debug('Scanning page scripts');
+    document.querySelectorAll('script').forEach(function(script) {
+      if (script.textContent) {
+        scanForM3u8(script.textContent);
+      }
+    });
+  }
 
-    var originalOpen = XMLHttpRequest.prototype.open;
-    XMLHttpRequest.prototype.open = function(method, url) {
-        if (url && typeof url === 'string' && url.indexOf('.m3u8') > -1) {
-            saveURL(url);
+  function deepScanPage() {
+    debug('Deep scanning page');
+    document.querySelectorAll('*').forEach(function(el) {
+      for (var attr in el.dataset) {
+        if (typeof el.dataset[attr] === 'string' && el.dataset[attr].indexOf('.m3u8') > -1) {
+          saveURL(el.dataset[attr]);
         }
-        return originalOpen.apply(this, arguments);
-    };
+      }
 
-    var originalFetch = window.fetch;
-    window.fetch = function(input) {
-        try {
-            var url = '';
-            if (typeof input === 'string') {
-                url = input;
-            } else if (input instanceof Request) {
-                url = input.url;
-            }
-            if (url && url.indexOf('.m3u8') > -1) {
-                saveURL(url);
-            }
-        } catch (e) {
-            debug('Error in fetch override: ' + e.message);
+      ['src', 'href', 'data', 'poster'].forEach(function(attr) {
+        if (el[attr] && typeof el[attr] === 'string' && el[attr].indexOf('.m3u8') > -1) {
+          saveURL(el[attr]);
         }
-        return originalFetch.apply(this, arguments);
-    };
+      });
+    });
+  }
 
+  var originalOpen = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function(method, url) {
+    if (url && typeof url === 'string' && url.indexOf('.m3u8') > -1) {
+      saveURL(url);
+    }
+    return originalOpen.apply(this, arguments);
+  };
+
+  var originalFetch = window.fetch;
+  window.fetch = function(input) {
     try {
-        var observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.type === 'childList') {
-                    mutation.addedNodes.forEach(function(node) {
-                        if (node.nodeName === 'VIDEO') {
-                            checkVideo(node);
-                        } else if (node.querySelectorAll) {
-                            node.querySelectorAll('video').forEach(checkVideo);
-                        }
-                    });
-                } else if (mutation.type === 'attributes') {
-                    if (mutation.target.nodeName === 'VIDEO') {
-                        checkVideo(mutation.target);
-                    }
-                }
-            });
-        });
-
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true,
-            attributes: true,
-            attributeFilter: ['src', 'data-src']
-        });
-
-        debug('DOM observer started');
+      var url = '';
+      if (typeof input === 'string') {
+        url = input;
+      } else if (input instanceof Request) {
+        url = input.url;
+      }
+      if (url && url.indexOf('.m3u8') > -1) {
+        saveURL(url);
+      }
     } catch (e) {
-        debug('Error setting up observer: ' + e.message);
+      debug('Error in fetch override: ' + e.message);
+    }
+    return originalFetch.apply(this, arguments);
+  };
+
+  try {
+    var observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach(function(node) {
+            if (node.nodeName === 'VIDEO') {
+              checkVideo(node);
+            } else if (node.querySelectorAll) {
+              node.querySelectorAll('video').forEach(checkVideo);
+            }
+          });
+        } else if (mutation.type === 'attributes') {
+          if (mutation.target.nodeName === 'VIDEO') {
+            checkVideo(mutation.target);
+          }
+        }
+      });
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['src', 'data-src']
+    });
+
+    debug('DOM observer started');
+  } catch (e) {
+    debug('Error setting up observer: ' + e.message);
+  }
+
+  var style = document.createElement('style');
+  style.textContent = `
+    #m3u8-detector-panel {
+      position:fixed;
+      top:10px;
+      right:10px;
+      padding:10px;
+      border-radius:5px;
+      color:white;
+      background:#007bff;
+      z-index:9999;
+      font-size:14px;
+      opacity:0.7;
     }
 
-    var style = document.createElement('style');
-    style.textContent = `
-        #m3u8-detector-panel {
-            position:fixed;
-            top:10px;
-            right:10px;
-            padding:10px;
-            border-radius:5px;
-            color:white;
-            background:#007bff;
-            z-index:9999;
-            font-size:14px;
-            opacity:0.7;
-        }
+    #m3u8-detector-panel button {
+      display:block;
+      margin-top:5px;
+      padding:3px 8px;
+      width:100%;
+      color:#007bff;
+      background:#fff;
+      border:none;
+      border-radius:3px;
+      cursor:pointer;
+    }
 
-        #m3u8-detector-panel button {
-            display:block;
-            margin-top:5px;
-            padding:3px 8px;
-            width:100%;
-            color:#007bff;
-            background:#fff;
-            border:none;
-            border-radius:3px;
-            cursor:pointer;
-        }
+    @keyframes fadeInOut {
+      0%   { color:#7bbbff; background:#fff; }
+      50%  { color:#fff; background:#7bbbff; }
+      100% { color:#7bbbff; background:#fff; }
+    }
 
-        @keyframes fadeInOut {
-            0%   { color:#7bbbff; background:#fff; }
-            50%  { color:#fff; background:#7bbbff; }
-            100% { color:#7bbbff; background:#fff; }
-        }
+    #m3u8-detector-panel button.animation {
+      animation: fadeInOut 1s ease-in-out 1;
+    }
 
-        #m3u8-detector-panel button.animation {
-            animation: fadeInOut 1s ease-in-out 1;
-        }
+    #m3u8-detector-panel button[disabled] {
+      color:#002b55;
+      background:#999;
+      cursor:not-allowed;
+    }
 
-        #m3u8-detector-panel button[disabled] {
-            color:#002b55;
-            background:#999;
-            cursor:not-allowed;
-        }
+    #m3u8-detector-panel button:active {
+      color:red;
+    }
+  `;
+  document.head.appendChild(style);
 
-        #m3u8-detector-panel button:active {
-            color:red;
-        }
-    `;
-    document.head.appendChild(style);
+  var panel = document.createElement('div');
+  panel.id = 'm3u8-detector-panel';
+  document.body.appendChild(panel);
 
-    var panel = document.createElement('div');
-    panel.id = 'm3u8-detector-panel';
-    document.body.appendChild(panel);
-
-    var scanButton = document.createElement('button');
-    scanButton.textContent = 'Force Scan';
-    scanButton.onclick = function() {
-        scanAllVideos();
-        scanPageScripts();
-        deepScanPage();
-    };
-    panel.appendChild(scanButton);
-
-    var copyButton = document.createElement('button');
-    copyButton.textContent = 'Copy URL';
-    copyButton.disabled = true;
-    copyButton.onanimationend = function() {
-        this.className = '';
-    };
-    copyButton.onclick = function() {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(m3u8URL);
-        }
-    };
-    panel.appendChild(copyButton);
-
+  var scanButton = document.createElement('button');
+  scanButton.textContent = 'Force Scan';
+  scanButton.onclick = function() {
     scanAllVideos();
     scanPageScripts();
-    window.setTimeout(deepScanPage, 2000);
+    deepScanPage();
+  };
+  panel.appendChild(scanButton);
 
-    debug('M3U8 detector initialized');
+  var copyButton = document.createElement('button');
+  copyButton.textContent = 'Copy URL';
+  copyButton.disabled = true;
+  copyButton.onanimationend = function() {
+    this.className = '';
+  };
+  copyButton.onclick = function() {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(m3u8URL);
+    }
+  };
+  panel.appendChild(copyButton);
+
+  scanAllVideos();
+  scanPageScripts();
+  window.setTimeout(deepScanPage, 2000);
+
+  debug('M3U8 detector initialized');
 })();
