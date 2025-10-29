@@ -138,14 +138,14 @@ javascript: (function() {
   style.textContent = `
     #m3u8-detector-panel {
       position:fixed;
-      z-index:9999;
+      z-index:2147483647;
       top:10px;
       right:10px;
       padding:10px;
       border-radius:5px;
       background:#007bff;
       font-size:14px;
-      opacity:0.7;
+      opacity:0.9;
     }
 
     #m3u8-detector-panel button {
