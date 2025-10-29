@@ -1,6 +1,3 @@
-// Copyright (c) 2025 lzlhero
-// Licensed under the GNU General Public License v3.0 (GPL-3.0)
-
 javascript: (function() {
   if (document.getElementById('m3u8-detector-panel')) return;
 
@@ -11,19 +8,11 @@ javascript: (function() {
     if (debugMode) console.log('[M3U8 Detector] ' + msg);
   }
 
-  var timer = 0;
   function saveURL(url) {
-    if (timer) {
-      window.clearTimeout(timer);
-    }
-
-    timer = window.setTimeout(function() {
-      timer = 0;
-      m3u8URL = url.split('#')[0];
-      debug('M3U8 URL: ' + m3u8URL);
-      copyButton.className = 'animation';
-      copyButton.disabled = false;
-    }, 1000);
+    m3u8URL = url.split('#')[0];
+    debug('M3U8 URL: ' + m3u8URL);
+    copyButton.className = 'animation';
+    copyButton.disabled = false;
   }
 
   function scanForM3u8(text) {
@@ -149,13 +138,12 @@ javascript: (function() {
   style.textContent = `
     #m3u8-detector-panel {
       position:fixed;
+      z-index:9999;
       top:10px;
       right:10px;
       padding:10px;
       border-radius:5px;
-      color:white;
       background:#007bff;
-      z-index:9999;
       font-size:14px;
       opacity:0.7;
     }
@@ -170,26 +158,31 @@ javascript: (function() {
       border:none;
       border-radius:3px;
       cursor:pointer;
+      user-select:none;
     }
 
-    @keyframes fadeInOut {
+    #m3u8-detector-panel button.manual-scan {
+      background:#ffd700;
+    }
+
+    @keyframes in-out {
       0%   { color:#7bbbff; background:#fff; }
       50%  { color:#fff; background:#7bbbff; }
       100% { color:#7bbbff; background:#fff; }
     }
 
     #m3u8-detector-panel button.animation {
-      animation: fadeInOut 1s ease-in-out 1;
+      animation: in-out 1s ease-in-out 1;
     }
 
-    #m3u8-detector-panel button[disabled] {
-      color:#002b55;
-      background:#999;
+    #m3u8-detector-panel button:disabled {
+      color:#838383;
+      background:#ddd;
       cursor:not-allowed;
     }
 
-    #m3u8-detector-panel button:active {
-      color:red;
+    #m3u8-detector-panel button:enabled:active {
+      color:#f00;
     }
   `;
   document.head.appendChild(style);
@@ -199,7 +192,8 @@ javascript: (function() {
   document.body.appendChild(panel);
 
   var scanButton = document.createElement('button');
-  scanButton.textContent = 'Force Scan';
+  scanButton.textContent = 'Manual Scan';
+  scanButton.className = 'manual-scan';
   scanButton.onclick = function() {
     scanAllVideos();
     scanPageScripts();
@@ -208,8 +202,8 @@ javascript: (function() {
   panel.appendChild(scanButton);
 
   var copyButton = document.createElement('button');
-  copyButton.textContent = 'Copy URL';
   copyButton.disabled = true;
+  copyButton.textContent = 'Copy URL';
   copyButton.onanimationend = function() {
     this.className = '';
   };
@@ -222,7 +216,7 @@ javascript: (function() {
 
   scanAllVideos();
   scanPageScripts();
-  window.setTimeout(deepScanPage, 2000);
+  setTimeout(deepScanPage, 2000);
 
   debug('M3U8 detector initialized');
 })();
