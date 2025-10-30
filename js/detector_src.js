@@ -97,7 +97,7 @@ javascript: (function() {
       z-index:2147483647;
       top:10px;
       right:10px;
-      padding:10px;
+      padding:5px;
       border-radius:5px;
       background:#007bff;
       font-size:14px;
@@ -144,7 +144,7 @@ javascript: (function() {
 
   var copyButton = document.createElement('button');
   copyButton.disabled = true;
-  copyButton.textContent = 'Copy URL';
+  copyButton.textContent = 'Copy';
   copyButton.onanimationend = function() {
     this.className = '';
   };
