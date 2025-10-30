@@ -107,11 +107,11 @@ function init() {
 
     #m3u8-detector-panel button {
       display:flex;
-      box-sizing:border-box;
+      box-sizing:content-box;
       justify-content:center;
       align-items:center;
-      padding:3px 8px;
-      height: 25px;
+      padding:5px;
+      height:14px;
       font-size:14px;
       border:none;
       border-radius:3px;
