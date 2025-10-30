@@ -100,30 +100,22 @@ javascript: (function() {
       padding:5px;
       border-radius:5px;
       background:#007bff;
-      font-size:14px;
       opacity:0.9;
     }
 
     #m3u8-detector-panel button {
-      display:block;
+      display:flex;
+      justify-content:center;
+      align-items:center;
       padding:3px 8px;
-      width:100%;
-      color:#007bff;
-      background:#fff;
+      height: 25px;
+      font-size:14px;
       border:none;
       border-radius:3px;
-      cursor:pointer;
       user-select:none;
-    }
-
-    @keyframes in-out {
-      0%   { color:#7bbbff; background:#fff; }
-      50%  { color:#fff; background:#7bbbff; }
-      100% { color:#7bbbff; background:#fff; }
-    }
-
-    #m3u8-detector-panel button.animation {
-      animation: in-out 1s ease-in-out 1;
+      color:#007bff;
+      background:#fff;
+      cursor:pointer;
     }
 
     #m3u8-detector-panel button:disabled {
@@ -134,6 +126,16 @@ javascript: (function() {
 
     #m3u8-detector-panel button:enabled:active {
       color:#f00;
+    }
+
+    @keyframes in-out {
+      0%   { color:#7bbbff; background:#fff; }
+      50%  { color:#fff; background:#7bbbff; }
+      100% { color:#7bbbff; background:#fff; }
+    }
+
+    #m3u8-detector-panel button.animation {
+      animation: in-out 1s ease-in-out 1;
     }
   `;
   document.head.appendChild(style);
