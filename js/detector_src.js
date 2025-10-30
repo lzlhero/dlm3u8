@@ -2,84 +2,40 @@ javascript: (function() {
   if (document.getElementById('m3u8-detector-panel')) return;
 
   var debugMode = true;
-  var m3u8URL = '';
-
   function debug(msg) {
     if (debugMode) console.log('[M3U8 Detector] ' + msg);
   }
 
+  var m3u8URL = '';
   function saveURL(url) {
     m3u8URL = url.split('#')[0];
-    debug('M3U8 URL: ' + m3u8URL);
+    debug('URL: ' + m3u8URL);
     copyButton.className = 'animation';
     copyButton.disabled = false;
   }
 
-  function scanForM3u8(text) {
-    if (!text || typeof text !== 'string') return;
-    var urlRegex = /"(?:url|src|file)"\s*:\s*"([^"]+\.m3u8[^"]*)"/gi;
-    var match;
-    while ((match = urlRegex.exec(text)) !== null) {
-      if (match[1]) saveURL(match[1]);
-    }
-    var directRegex = /(https?:\/\/[^\s"']+\.m3u8[^\s"']*)/gi;
-    while ((match = directRegex.exec(text)) !== null) {
-      if (match[1]) saveURL(match[1]);
-    }
-  }
-
   function checkVideo(video) {
     if (!video) return;
-    if (video.src && video.src.indexOf('.m3u8') > -1) {
+    if (video.src && /\.m3u8/i.test(video.src)) {
       saveURL(video.src);
     }
     var sources = video.querySelectorAll('source');
     for (var i = 0; i < sources.length; i++) {
-      if (sources[i].src && sources[i].src.indexOf('.m3u8') > -1) {
+      if (sources[i].src && /\.m3u8/i.test(sources[i].src)) {
         saveURL(sources[i].src);
       }
     }
     for (var attr in video.dataset) {
-      if (typeof video.dataset[attr] === 'string' && video.dataset[attr].indexOf('.m3u8') > -1) {
+      if (typeof video.dataset[attr] === 'string' && /\.m3u8/i.test(video.dataset[attr])) {
         saveURL(video.dataset[attr]);
       }
     }
   }
 
-  function scanAllVideos() {
-    debug('Scanning video elements');
-    document.querySelectorAll('video').forEach(checkVideo);
-  }
-
-  function scanPageScripts() {
-    debug('Scanning page scripts');
-    document.querySelectorAll('script').forEach(function(script) {
-      if (script.textContent) {
-        scanForM3u8(script.textContent);
-      }
-    });
-  }
-
-  function deepScanPage() {
-    debug('Deep scanning page');
-    document.querySelectorAll('*').forEach(function(el) {
-      for (var attr in el.dataset) {
-        if (typeof el.dataset[attr] === 'string' && el.dataset[attr].indexOf('.m3u8') > -1) {
-          saveURL(el.dataset[attr]);
-        }
-      }
-
-      ['src', 'href', 'data', 'poster'].forEach(function(attr) {
-        if (el[attr] && typeof el[attr] === 'string' && el[attr].indexOf('.m3u8') > -1) {
-          saveURL(el[attr]);
-        }
-      });
-    });
-  }
-
   var originalOpen = XMLHttpRequest.prototype.open;
   XMLHttpRequest.prototype.open = function(method, url) {
-    if (url && typeof url === 'string' && url.indexOf('.m3u8') > -1) {
+    if (url && typeof url === 'string' && /\.m3u8$|\.m3u8\?/i.test(url)) {
+      debug('XHR: ' + url);
       saveURL(url);
     }
     return originalOpen.apply(this, arguments);
@@ -94,7 +50,8 @@ javascript: (function() {
       } else if (input instanceof Request) {
         url = input.url;
       }
-      if (url && url.indexOf('.m3u8') > -1) {
+      if (url && /\.m3u8$|\.m3u8\?/i.test(url)) {
+        debug('window.fetch: ' + url);
         saveURL(url);
       }
     } catch (e) {
@@ -121,7 +78,6 @@ javascript: (function() {
         }
       });
     });
-
     observer.observe(document.body, {
       childList: true,
       subtree: true,
@@ -150,7 +106,6 @@ javascript: (function() {
 
     #m3u8-detector-panel button {
       display:block;
-      margin-top:5px;
       padding:3px 8px;
       width:100%;
       color:#007bff;
@@ -159,10 +114,6 @@ javascript: (function() {
       border-radius:3px;
       cursor:pointer;
       user-select:none;
-    }
-
-    #m3u8-detector-panel button.manual-scan {
-      background:#ffd700;
     }
 
     @keyframes in-out {
@@ -191,16 +142,6 @@ javascript: (function() {
   panel.id = 'm3u8-detector-panel';
   document.body.appendChild(panel);
 
-  var scanButton = document.createElement('button');
-  scanButton.textContent = 'Manual Scan';
-  scanButton.className = 'manual-scan';
-  scanButton.onclick = function() {
-    scanAllVideos();
-    scanPageScripts();
-    deepScanPage();
-  };
-  panel.appendChild(scanButton);
-
   var copyButton = document.createElement('button');
   copyButton.disabled = true;
   copyButton.textContent = 'Copy URL';
@@ -214,9 +155,9 @@ javascript: (function() {
   };
   panel.appendChild(copyButton);
 
-  scanAllVideos();
-  scanPageScripts();
-  setTimeout(deepScanPage, 2000);
+  debug('Before scanning video elements');
+  document.querySelectorAll('video').forEach(checkVideo);
+  debug('After scanning video elements');
 
   debug('M3U8 detector initialized');
 })();
