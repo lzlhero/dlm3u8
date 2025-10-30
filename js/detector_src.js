@@ -1,4 +1,6 @@
 javascript: (function() {
+
+function init() {
   if (document.getElementById('m3u8-detector-panel')) return;
 
   var debugMode = true;
@@ -162,4 +164,12 @@ javascript: (function() {
   debug('After scanning video elements');
 
   debug('M3U8 detector initialized');
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
+}
+
 })();
