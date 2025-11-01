@@ -1,7 +1,7 @@
 javascript: (function() {
 
 function init() {
-  if (window.saveM3U8DetectorURL) return;
+  if (window.__setM3U8URL__) return;
 
   var debugMode = true;
   function debug(msg) {
@@ -9,31 +9,31 @@ function init() {
   }
 
   var m3u8URL = '';
-  window.saveM3U8DetectorURL = function(url) {
+  window.__setM3U8URL__ = function(url) {
     if (window.parent === window.self) {
       m3u8URL = url.split('#')[0];
       debug('URL: ' + m3u8URL);
       copyButton.className = 'animation';
       copyButton.disabled = false;
     } else {
-      window.parent.saveM3U8DetectorURL(url);
+      window.parent.__setM3U8URL__(url);
     }
   };
 
   function checkVideo(video) {
     if (!video) return;
     if (video.src && /\.m3u8/i.test(video.src)) {
-      saveM3U8DetectorURL(video.src);
+      __setM3U8URL__(video.src);
     }
     var sources = video.querySelectorAll('source');
     for (var i = 0; i < sources.length; i++) {
       if (sources[i].src && /\.m3u8/i.test(sources[i].src)) {
-        saveM3U8DetectorURL(sources[i].src);
+        __setM3U8URL__(sources[i].src);
       }
     }
     for (var attr in video.dataset) {
       if (typeof video.dataset[attr] === 'string' && /\.m3u8/i.test(video.dataset[attr])) {
-        saveM3U8DetectorURL(video.dataset[attr]);
+        __setM3U8URL__(video.dataset[attr]);
       }
     }
   }
@@ -47,7 +47,10 @@ function init() {
     }
   }
 
-  function appendScript(doc) {
+  function appendScript(win) {
+    if (win.__setM3U8URL__) return;
+
+    var doc = win.document;
     var script = doc.createElement('script');
     script.textContent = `(function(){${init.toString()}init();})();`;
     doc.head.appendChild(script);
@@ -60,10 +63,10 @@ function init() {
     var doc = win.document;
     if (doc.readyState === 'loading') {
       doc.addEventListener("DOMContentLoaded", function() {
-        appendScript(doc);
+        appendScript(win);
       });
     } else {
-      appendScript(doc);
+      appendScript(win);
     }
   }
 
@@ -71,7 +74,7 @@ function init() {
   XMLHttpRequest.prototype.open = function(method, url) {
     if (url && typeof url === 'string' && /\.m3u8$|\.m3u8\?/i.test(url)) {
       debug('XHR: ' + url);
-      saveM3U8DetectorURL(url);
+      __setM3U8URL__(url);
     }
     return originalOpen.apply(this, arguments);
   };
@@ -87,7 +90,7 @@ function init() {
       }
       if (url && /\.m3u8$|\.m3u8\?/i.test(url)) {
         debug('window.fetch: ' + url);
-        saveM3U8DetectorURL(url);
+        __setM3U8URL__(url);
       }
     } catch (e) {
       debug('Error in fetch override: ' + e.message);
