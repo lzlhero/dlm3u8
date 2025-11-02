@@ -1,3 +1,6 @@
+// Copyright (c) 2025 lzlhero
+// Licensed under the GNU General Public License v3.0 (GPL-3.0)
+
 javascript: (function() {
 
 function init() {
@@ -63,7 +66,7 @@ function init() {
 
     var doc = win.document;
     if (doc.readyState === 'loading') {
-      doc.addEventListener("DOMContentLoaded", function() {
+      doc.addEventListener('DOMContentLoaded', function() {
         appendScript(win);
       });
     } else {
@@ -214,7 +217,7 @@ function init() {
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener("DOMContentLoaded", init);
+  document.addEventListener('DOMContentLoaded', init);
 } else {
   init();
 }

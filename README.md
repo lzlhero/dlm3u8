@@ -51,6 +51,10 @@ https://example.com/3/index.m3u8 file-name3
 
 When no output file is specified, the output files will be saved sequentially as `001.mp4`, `002.mp4`, `003.mp4`, and so on.
 
+## M3U8 Detector
+* Open `m3u8detector.html` in your web browser to add the **M3U8 Detector** bookmarklet.
+* Alternatively, copy the contents of `js/m3u8detector.js` and use it to create the **M3U8 Detector** bookmarklet.
+
 ## Download
 https://github.com/lzlhero/dlm3u8/archive/refs/heads/master.zip
 
