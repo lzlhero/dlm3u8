@@ -8,14 +8,16 @@ function init() {
 
   var debugMode = true;
   function debug(msg) {
-    if (debugMode) console.log('[M3U8 Detector] ' + msg);
+    if (debugMode) {
+      console.log('[M3U8 Detector] [' + location.href + '] ' + msg);
+    }
   }
 
   var m3u8URL = '';
   window.__setM3U8URL__ = function(url) {
     if (window.parent === window.self) {
       m3u8URL = url.split('#')[0];
-      debug('URL: ' + m3u8URL);
+      debug('Set m3u8 url: ' + m3u8URL);
       copyButton.className = 'animation';
       copyButton.disabled = false;
     } else {
@@ -26,16 +28,19 @@ function init() {
   function checkVideo(video) {
     if (!video) return;
     if (video.src && /\.m3u8/i.test(video.src)) {
+      debug('video.src: ' + video.src);
       __setM3U8URL__(video.src);
     }
     var sources = video.querySelectorAll('source');
     for (var i = 0; i < sources.length; i++) {
       if (sources[i].src && /\.m3u8/i.test(sources[i].src)) {
+        debug('video>source.src: ' + sources[i].src);
         __setM3U8URL__(sources[i].src);
       }
     }
     for (var attr in video.dataset) {
       if (typeof video.dataset[attr] === 'string' && /\.m3u8/i.test(video.dataset[attr])) {
+        debug('video.dataset[' + attr + ']: ' + video.dataset[attr]);
         __setM3U8URL__(video.dataset[attr]);
       }
     }
@@ -55,7 +60,7 @@ function init() {
 
     var doc = win.document;
     var script = doc.createElement('script');
-    script.textContent = `(function(){${init.toString()}init();})();`;
+    script.textContent = '(function(){' + init.toString() + 'init();})();';
     doc.head.appendChild(script);
     script.remove();
   }
@@ -74,10 +79,82 @@ function init() {
     }
   }
 
+  if (window.parent === window.self) {
+    var style = document.createElement('style');
+    style.textContent = `
+      #m3u8-detector-panel {
+        position:fixed;
+        z-index:2147483647;
+        top:10px;
+        right:10px;
+        padding:5px;
+        border-radius:5px;
+        background:#007bff;
+        opacity:0.9;
+      }
+
+      #m3u8-detector-panel button {
+        display:flex;
+        box-sizing:content-box;
+        justify-content:center;
+        align-items:center;
+        padding:5px;
+        height:14px;
+        font-size:14px;
+        border:none;
+        border-radius:3px;
+        user-select:none;
+        color:#007bff;
+        background:#fff;
+        cursor:pointer;
+      }
+
+      #m3u8-detector-panel button:disabled {
+        color:#838383;
+        background:#ddd;
+        cursor:not-allowed;
+      }
+
+      #m3u8-detector-panel button:enabled:active {
+        color:#f00;
+      }
+
+      @keyframes in-out {
+        0%   { color:#7bbbff; background:#fff; }
+        50%  { color:#fff; background:#7bbbff; }
+        100% { color:#7bbbff; background:#fff; }
+      }
+
+      #m3u8-detector-panel button.animation {
+        animation: in-out 1s ease-in-out 1;
+      }
+    `;
+    document.head.appendChild(style);
+
+    var panel = document.createElement('div');
+    panel.id = 'm3u8-detector-panel';
+    document.body.appendChild(panel);
+
+    var copyButton = document.createElement('button');
+    copyButton.disabled = true;
+    copyButton.textContent = 'Copy';
+    copyButton.onanimationend = function() {
+      this.className = '';
+    };
+    copyButton.onclick = function() {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(m3u8URL);
+      }
+    };
+    panel.appendChild(copyButton);
+
+    debug('Detector UI created');
+  }
+
   var originalOpen = XMLHttpRequest.prototype.open;
   XMLHttpRequest.prototype.open = function(method, url) {
     if (url && typeof url === 'string' && /\.m3u8$|\.m3u8\?/i.test(url)) {
-      debug('XHR: ' + url);
+      debug('xhr.open: ' + url);
       __setM3U8URL__(url);
     }
     return originalOpen.apply(this, arguments);
@@ -93,7 +170,7 @@ function init() {
         url = input.url;
       }
       if (url && /\.m3u8$|\.m3u8\?/i.test(url)) {
-        debug('window.fetch: ' + url);
+        debug('fetch: ' + url);
         __setM3U8URL__(url);
       }
     } catch (e) {
@@ -108,6 +185,7 @@ function init() {
         if (mutation.type === 'childList') {
           mutation.addedNodes.forEach(function(node) {
             if (node.nodeName === 'IFRAME') {
+              debug('Inject script to iframe which has been added');
               injectScript(node);
             } else if (node.nodeName === 'VIDEO') {
               checkVideo(node);
@@ -117,6 +195,7 @@ function init() {
           });
         } else if (mutation.type === 'attributes') {
           if (mutation.target.nodeName === 'IFRAME' && mutation.attributeName === 'src') {
+            debug('Inject script to iframe which \'src\' attribute has changed');
             injectScript(mutation.target);
           } else if (mutation.target.nodeName === 'VIDEO') {
             checkVideo(mutation.target);
@@ -136,84 +215,13 @@ function init() {
     debug('Error setting up observer: ' + e.message);
   }
 
-  debug('Before scanning video elements');
-  document.querySelectorAll('video').forEach(checkVideo);
-  debug('After scanning video elements');
+  var videos = document.querySelectorAll('video');
+  debug('Scan ' + videos.length + ' video elements');
+  videos.forEach(checkVideo);
 
-  document.querySelectorAll('iframe').forEach(injectScript);
-  debug('Inject script to iframe elements');
-
-  if (window.parent !== window.self) return;
-
-  var style = document.createElement('style');
-  style.textContent = `
-    #m3u8-detector-panel {
-      position:fixed;
-      z-index:2147483647;
-      top:10px;
-      right:10px;
-      padding:5px;
-      border-radius:5px;
-      background:#007bff;
-      opacity:0.9;
-    }
-
-    #m3u8-detector-panel button {
-      display:flex;
-      box-sizing:content-box;
-      justify-content:center;
-      align-items:center;
-      padding:5px;
-      height:14px;
-      font-size:14px;
-      border:none;
-      border-radius:3px;
-      user-select:none;
-      color:#007bff;
-      background:#fff;
-      cursor:pointer;
-    }
-
-    #m3u8-detector-panel button:disabled {
-      color:#838383;
-      background:#ddd;
-      cursor:not-allowed;
-    }
-
-    #m3u8-detector-panel button:enabled:active {
-      color:#f00;
-    }
-
-    @keyframes in-out {
-      0%   { color:#7bbbff; background:#fff; }
-      50%  { color:#fff; background:#7bbbff; }
-      100% { color:#7bbbff; background:#fff; }
-    }
-
-    #m3u8-detector-panel button.animation {
-      animation: in-out 1s ease-in-out 1;
-    }
-  `;
-  document.head.appendChild(style);
-
-  var panel = document.createElement('div');
-  panel.id = 'm3u8-detector-panel';
-  document.body.appendChild(panel);
-
-  var copyButton = document.createElement('button');
-  copyButton.disabled = true;
-  copyButton.textContent = 'Copy';
-  copyButton.onanimationend = function() {
-    this.className = '';
-  };
-  copyButton.onclick = function() {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(m3u8URL);
-    }
-  };
-  panel.appendChild(copyButton);
-
-  debug('UI created');
+  var iframes = document.querySelectorAll('iframe');
+  debug('Inject script to ' + iframes.length + ' iframe elements');
+  iframes.forEach(injectScript);
 }
 
 if (document.readyState === 'loading') {
