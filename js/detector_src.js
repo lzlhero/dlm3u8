@@ -54,6 +54,7 @@ function init() {
     var script = doc.createElement('script');
     script.textContent = `(function(){${init.toString()}init();})();`;
     doc.head.appendChild(script);
+    script.remove();
   }
 
   function injectScript(iframe) {
