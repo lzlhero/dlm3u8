@@ -16,8 +16,11 @@ function init() {
   var m3u8URL = '';
   window.__setM3U8URL__ = function(url) {
     if (window.parent === window.self) {
-      m3u8URL = url.split('#')[0];
-      debug('Set m3u8 url: ' + m3u8URL);
+      url = url.split('#')[0];
+      if (m3u8URL === url) return;
+
+      m3u8URL = url;
+      debug('Set URL: ' + m3u8URL);
       copyButton.className = 'animation';
       copyButton.disabled = false;
     } else {
@@ -34,7 +37,7 @@ function init() {
     var sources = video.querySelectorAll('source');
     for (var i = 0; i < sources.length; i++) {
       if (sources[i].src && /\.m3u8/i.test(sources[i].src)) {
-        debug('video>source.src: ' + sources[i].src);
+        debug('video>source[' + i + '].src: ' + sources[i].src);
         __setM3U8URL__(sources[i].src);
       }
     }
@@ -83,46 +86,52 @@ function init() {
     var style = document.createElement('style');
     style.textContent = `
       #m3u8-detector-panel {
-        position:fixed;
-        z-index:2147483647;
-        top:10px;
-        right:10px;
-        padding:5px;
-        border-radius:5px;
-        background:#007bff;
-        opacity:0.9;
+        position: fixed;
+        z-index: 2147483647;
+        top: 10px;
+        right: 10px;
+        padding: 5px;
+        border-radius: 5px;
+        background: #007bff;
+        opacity: 0.9;
       }
 
       #m3u8-detector-panel button {
-        display:flex;
-        box-sizing:content-box;
-        justify-content:center;
-        align-items:center;
-        padding:5px;
-        height:14px;
-        font-size:14px;
-        border:none;
-        border-radius:3px;
-        user-select:none;
-        color:#007bff;
-        background:#fff;
-        cursor:pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-sizing: content-box;
+        padding: 5px;
+        height: 14px;
+        font-size: 14px;
+        border: none;
+        border-radius: 3px;
+        user-select: none;
+        color: #007bff;
+        background: #fff;
+        cursor: pointer;
       }
 
       #m3u8-detector-panel button:disabled {
-        color:#838383;
-        background:#ddd;
-        cursor:not-allowed;
+        color: #838383;
+        background: #ddd;
+        cursor: not-allowed;
       }
 
       #m3u8-detector-panel button:enabled:active {
-        color:#f00;
+        color: #f00;
       }
 
       @keyframes in-out {
-        0%   { color:#7bbbff; background:#fff; }
-        50%  { color:#fff; background:#7bbbff; }
-        100% { color:#7bbbff; background:#fff; }
+        0%, 100% {
+          color: #7bbbff;
+          background: #fff;
+        }
+
+        50% {
+          color: #fff;
+          background: #7bbbff;
+        }
       }
 
       #m3u8-detector-panel button.animation {
