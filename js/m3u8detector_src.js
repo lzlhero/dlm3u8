@@ -233,7 +233,7 @@ function init() {
   videos.forEach(checkVideo);
 
   var iframes = document.querySelectorAll('iframe');
-  debug('Scan ' + iframes.length + ' iframe elements');
+  debug('Inject ' + iframes.length + ' iframe elements');
   iframes.forEach(injectScript);
 }
 
