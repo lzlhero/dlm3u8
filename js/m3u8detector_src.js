@@ -58,12 +58,10 @@ function init() {
     }
   }
 
-  function appendScript(win) {
-    if (win.__setM3U8URL__) return;
-
-    var doc = win.document;
+  function appendScript(doc) {
+    debug('Append script to iframe\'s document');
     var script = doc.createElement('script');
-    script.textContent = '(function(){' + init.toString() + 'init();})();';
+    script.textContent = '(function(){' + init.toString() + 'init()})();';
     doc.head.appendChild(script);
     script.remove();
   }
@@ -75,10 +73,10 @@ function init() {
     var doc = win.document;
     if (doc.readyState === 'loading') {
       doc.addEventListener('DOMContentLoaded', function() {
-        appendScript(win);
+        appendScript(doc);
       });
     } else {
-      appendScript(win);
+      appendScript(doc);
     }
   }
 
@@ -168,6 +166,7 @@ function init() {
     }
     return originalOpen.apply(this, arguments);
   };
+  debug('xhr.open() has been overridden');
 
   var originalFetch = window.fetch;
   window.fetch = function(input) {
@@ -187,6 +186,7 @@ function init() {
     }
     return originalFetch.apply(this, arguments);
   };
+  debug('fetch() has been overridden');
 
   try {
     var observer = new MutationObserver(function(mutations) {
@@ -194,7 +194,7 @@ function init() {
         if (mutation.type === 'childList') {
           mutation.addedNodes.forEach(function(node) {
             if (node.nodeName === 'IFRAME') {
-              debug('Inject script to iframe which has been added');
+              debug('iframe has been added');
               injectScript(node);
             } else if (node.nodeName === 'VIDEO') {
               checkVideo(node);
@@ -204,8 +204,12 @@ function init() {
           });
         } else if (mutation.type === 'attributes') {
           if (mutation.target.nodeName === 'IFRAME' && mutation.attributeName === 'src') {
-            debug('Inject script to iframe which \'src\' attribute has changed');
-            injectScript(mutation.target);
+            debug('iframe\'s src has changed');
+            mutation.target.contentWindow.addEventListener('unload', function() {
+              setTimeout(function() {
+                injectScript(mutation.target);
+              }, 0);
+            });
           } else if (mutation.target.nodeName === 'VIDEO') {
             checkVideo(mutation.target);
           }
@@ -229,7 +233,7 @@ function init() {
   videos.forEach(checkVideo);
 
   var iframes = document.querySelectorAll('iframe');
-  debug('Inject script to ' + iframes.length + ' iframe elements');
+  debug('Scan ' + iframes.length + ' iframe elements');
   iframes.forEach(injectScript);
 }
 
