@@ -14,9 +14,7 @@ if [ -z "$2" ]; then
   exit 1
 fi
 
-files=("${@:2}")
-
-for F in "${files[@]}"; do
+for F in "${@:2}"; do
   [ -f "$F" ] || continue
   echo "$(basename "$F")"
   dd if="$F" of="${F%.*}.tmp" bs="$1" skip=1 status=none
