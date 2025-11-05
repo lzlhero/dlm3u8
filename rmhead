@@ -14,12 +14,11 @@ if [ -z "$2" ]; then
   exit 1
 fi
 
-shopt -s nullglob
 files=("${@:2}")
 
 for F in "${files[@]}"; do
   [ -f "$F" ] || continue
   echo "$(basename "$F")"
-  dd if="$F" of="${F%.*}.tmp" bs=$1 skip=1 status=none
+  dd if="$F" of="${F%.*}.tmp" bs="$1" skip=1 status=none
   mv -f "${F%.*}.tmp" "$F"
 done
