@@ -20,5 +20,5 @@ for F in "${files[@]}"; do
   [ -f "$F" ] || continue
   echo "$(basename "$F")"
   dd if="$F" of="${F%.*}.tmp" bs="$1" skip=1 status=none
-  mv -f "${F%.*}.tmp" "$F"
+  mv -f "${F%.*}.tmp" "$F" >/dev/null 2>&1
 done

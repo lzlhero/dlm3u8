@@ -4,18 +4,18 @@
 @echo off
 
 if "%~1"=="" (
-  echo Usage: %~nx0 filename bytes-length
+  echo Usage: %~nx0 bytes-length files
+  echo Note: The files argument supports file wildcards.
   exit /b 1
 )
 
 if "%~2"=="" (
-  echo Error: missing bytes-length parameter.
+  echo Error: missing files.
   exit /b 1
 )
 
-for %%F in (%1) do (
+for %%F in (%2) do (
   echo %%~nxF
-
-  dd if="%%~fF" of="%%~dpnF.tmp" bs=%2 skip=1 status=none
-  move /Y "%%~dpnF.tmp" "%%~fF" >nul
+  dd if="%%~fF" of="%%~dpnF.tmp" bs="%1" skip=1 status=none
+  move /Y "%%~dpnF.tmp" "%%~fF" >NUL
 )
