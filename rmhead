@@ -4,17 +4,22 @@
 # Licensed under the GNU General Public License v3.0 (GPL-3.0)
 
 if [ -z "$1" ]; then
-  echo "Usage: $(basename "$0") filename bytes-length"
+  echo "Usage: $(basename "$0") bytes-length files"
+  echo "Note: The files argument supports file wildcards."
   exit 1
 fi
 
 if [ -z "$2" ]; then
-  echo "Error: missing bytes-length parameter."
+  echo "Error: missing files."
   exit 1
 fi
 
-for F in $1; do
-  echo "$F"
-  dd if="$F" of="${F%.*}.tmp" bs="$2" skip=1 status=none
+shopt -s nullglob
+files=("${@:2}")
+
+for F in "${files[@]}"; do
+  [ -f "$F" ] || continue
+  echo "$(basename "$F")"
+  dd if="$F" of="${F%.*}.tmp" bs=$1 skip=1 status=none
   mv -f "${F%.*}.tmp" "$F"
 done
