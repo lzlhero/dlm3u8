@@ -2,6 +2,7 @@
 // Licensed under the GNU General Public License v3.0 (GPL-3.0)
 
 const { readFile, writeFile } = require('fs/promises');
+const flag = '\n# rebuilder: fixm3u8';
 
 (async () => {
 
@@ -25,9 +26,15 @@ const { readFile, writeFile } = require('fs/promises');
   m3u8Content = m3u8Content.replace(/\r\n/g, '\n');
 
   // validate m3u8 format
-  if (!/^#EXTM3U/.test(m3u8Content)) {
+  if (!/(^#EXTM3U|\n#EXTM3U)\n/.test(m3u8Content)) {
     console.error(`Failed to validate "${inputM3u8File}". It is not "m3u8" format.`);
     process.exit(1);
+  }
+
+  // check the flag
+  if (m3u8Content.lastIndexOf(flag) !== -1) {
+    console.error(`The "${inputM3u8File}" has already been fixed.`);
+    return;
   }
 
   // get ffmpeg log content
@@ -56,37 +63,36 @@ const { readFile, writeFile } = require('fs/promises');
   // display discontinuity info
   if (segments.length) {
     console.log(`Found ${segments.length} "discontinuity" keyword in "${logFile}".`);
-  } else {
-    console.log(`No "discontinuity" keyword in "${logFile}".`);
-    return;
-  }
 
-  // remove all discontinuity segments from m3u8 content
-  var strReg, replaceText;
-  for (var i = 0; i < segments.length; i = i + 2) {
-    // build replacement reg string
-    strReg = `\n${segments[i].replace(/\./g, '\\\.')}\n(?:.*\n)*`;
-    if (i + 1 < segments.length) {
+    // remove all discontinuity segments from m3u8 content
+    var strReg, replaceText;
+    for (var i = 0; i < segments.length; i = i + 2) {
+      // build replacement reg string
+      strReg = `\n${segments[i].replace(/\./g, '\\\.')}\n(?:.*\n)*`;
+      if (i + 1 < segments.length) {
         strReg += `?${segments[i + 1].replace(/\./g, '\\\.')}\n`;
         replaceText = '\n';
-    } else {
+      } else {
         replaceText = '\n#EXT-X-ENDLIST\n';
+      }
+
+      // remove discontinuity ts
+      m3u8Content = m3u8Content.replace(new RegExp(strReg), replaceText);
+
+      // display removed segments info
+      console.log(`${1 + i / 2}: ${segments[i]} - ${i + 1 < segments.length ? segments[i + 1] : '#EXT-X-ENDLIST'}`);
     }
-
-    // remove discontinuity ts
-    m3u8Content = m3u8Content.replace(new RegExp(strReg), replaceText);
-
-    // display removed segments info
-    console.log(`${1 + i / 2}: ${segments[i]} - ${i + 1 < segments.length ? segments[i + 1] : '#EXT-X-ENDLIST'}`);
+  } else {
+    console.log(`No "discontinuity" keyword in "${logFile}".`);
   }
 
-  // save fixed.m3u8 file
-  var outputM3u8File = 'fixed.m3u8';
+  // save rebuild m3u8 file
+  var outputM3u8File = inputM3u8File;
   try {
-    await writeFile(outputM3u8File, m3u8Content, 'utf8');
+    await writeFile(outputM3u8File, m3u8Content + flag, 'utf8');
   } catch (error) {
     console.error(`Failed to write "${outputM3u8File}".`);
     process.exit(1);
   }
-  console.log(`Wrote "${outputM3u8File}" file.`);
+  console.log(`Rebuilt "${outputM3u8File}" file.`);
 })();

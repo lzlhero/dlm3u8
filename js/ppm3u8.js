@@ -3,6 +3,7 @@
 
 const { createHash } = require('crypto');
 const { readFile, writeFile } = require('fs/promises');
+const flag = '\n# rebuilder: ppm3u8';
 
 (async () => {
 
@@ -23,11 +24,18 @@ const { readFile, writeFile } = require('fs/promises');
     console.error(`Failed to read "${inputM3u8File}".`);
     process.exit(1);
   }
+  m3u8Content = m3u8Content.replace(/\r\n/g, '\n');
 
   // validate m3u8 format
-  if (!/^#EXTM3U/.test(m3u8Content)) {
+  if (!/(^#EXTM3U|\n#EXTM3U)\n/.test(m3u8Content)) {
     console.error(`Failed to validate "${inputM3u8File}". It is not "m3u8" format.`);
     process.exit(1);
+  }
+
+  // check the flag
+  if (m3u8Content.lastIndexOf(flag) !== -1) {
+    console.error(`The "${inputM3u8File}" has already been preprocessed.`);
+    return;
   }
 
   // display discontinuity info
@@ -46,7 +54,7 @@ const { readFile, writeFile } = require('fs/promises');
 
   // extract crypto key url, modify m3u8 content
   var keys = {};
-  var m3u8Content = m3u8Content.replace(/(?:URI=")([^"]+)(?:")/g, function($0, $1) {
+  m3u8Content = m3u8Content.replace(/(?:URI=")([^"]+)(?:")/g, function($0, $1) {
     // get crypto key absolute url
     var url = inputUrl ? new URL($1, inputUrl) : new URL($1);
 
@@ -66,7 +74,7 @@ const { readFile, writeFile } = require('fs/promises');
   }
 
   // extract ts url, modify m3u8 content
-  var m3u8Lines = m3u8Content.split(/\r?\n/);
+  var m3u8Lines = m3u8Content.split(/\n/);
   var m3u8Line, url, filename;
   for (var i = 0; i < m3u8Lines.length; i++) {
     m3u8Line = m3u8Lines[i].trim();
@@ -89,8 +97,11 @@ const { readFile, writeFile } = require('fs/promises');
     }
   }
 
-  // save aria2c.txt file
-  var listFile = 'aria2c.txt';
+  // get base name
+  var baseName = inputM3u8File.substring(0, inputM3u8File.lastIndexOf(".")) || inputM3u8File;
+
+  // save aria2c list file
+  var listFile = `${baseName}.aria2c.txt`;
   try {
     await writeFile(listFile, listFileLines.join('\n'), 'utf8');
   } catch (error) {
@@ -99,13 +110,13 @@ const { readFile, writeFile } = require('fs/promises');
   }
   console.log(`Wrote "${listFile}" file.`);
 
-  // save file.m3u8 file
-  var outputM3u8File = 'file.m3u8';
+  // save rebuild m3u8 file
+  var outputM3u8File = inputM3u8File;
   try {
-    await writeFile(outputM3u8File, m3u8Lines.join('\n'), 'utf8');
+    await writeFile(outputM3u8File, m3u8Lines.join('\n') + flag, 'utf8');
   } catch (error) {
     console.error(`Failed to write "${outputM3u8File}".`);
     process.exit(1);
   }
-  console.log(`Wrote "${outputM3u8File}" file.`);
+  console.log(`Rebuilt "${outputM3u8File}" file.`);
 })();

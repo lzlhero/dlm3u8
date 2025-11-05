@@ -5,7 +5,7 @@
 
 # display usage information
 if [[ -z "$1" ]]; then
-  echo "Usage: $(basename "$0") file.m3u8 [output.mp4]"
+  echo "Usage: $(basename "$0") filename.m3u8 [filename.mp4]"
   exit 1
 fi
 
@@ -14,19 +14,24 @@ if [[ ! -f "$1" ]]; then
   exit 1
 fi
 
-# set mp4 output filename
+# set basename
 if [[ -z "$2" ]]; then
-  output="output.mp4"
+  basename="${1%.*}"
 else
-  output="$2"
+  basename="$2"
 fi
-while [[ "$output" == *"." ]]; do
-  output="${output%.}"
+# trim dot
+while [[ "${basename: -1}" == "." ]]; do
+  basename="${basename%.}"
 done
-ext="$(echo "${output: -4}" | tr '[:upper:]' '[:lower:]')"
-if [[ "$ext" != ".mp4" ]]; then
-  output="${output}.mp4"
+ext="$(echo "${basename: -4}" | tr '[:upper:]' '[:lower:]')"
+if [[ "$ext" == ".mp4" ]]; then
+  basename="${basename%.*}"
 fi
+
+# set input file and output file
+input="$1"
+output="${basename}.mp4"
 
 # validate output file name
 if [[ ! -f "$output" ]]; then
@@ -39,36 +44,33 @@ if [[ ! -f "$output" ]]; then
   fi
 fi
 
-# remove last fixed.m3u8
-if [[ -f "fixed.m3u8" ]]; then
-  rm -f "fixed.m3u8"
-fi
+# check the fixm3u8 flag in the input file
+grep -q "# rebuilder: fixm3u8" "$input"
+if [ $? -eq 1 ]; then
+  # generate ffmpeg scan log
+  scanlog="${basename}.ffmpeg.scan.log"
+  echo "Generating \"$scanlog\" for advertisement removal..."
+  ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy -f null /dev/null >"$scanlog" 2>&1
+  if [[ $? -ne 0 ]]; then
+    echo "Error: Generating \"$scanlog\" file errors."
+    exit 1
+  fi
 
-# set m3u8 input file name
-input="$1"
-
-# generate ffmpeg checking log
-ffmpeglog="ffmpeg.1.log"
-echo "Generating \"$ffmpeglog\" for advertisement removal..."
-ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy -f null /dev/null > "$ffmpeglog" 2>&1
-if [[ $? -ne 0 ]]; then
-  echo "Error: Generating \"$ffmpeglog\" file errors."
-  exit 1
-fi
-
-# generate fixed.m3u8 by ffmpeg log
-node "$(dirname "$0")/js/fixm3u8.js" "$input" "$ffmpeglog"
-if [[ -f "fixed.m3u8" ]]; then
-  input="fixed.m3u8"
+  # rebuild m3u8 to remove ads
+  node "$(dirname "$0")/js/fixm3u8.js" "$input" "$scanlog"
+  if [ $? -ne 0 ]; then
+    exit 1
+  fi
 fi
 
 # merge all ts files to mp4 file
+mergelog="${basename}.ffmpeg.merge.log"
 echo
 echo "Merging \"$output\" based on \"$input\"..."
-ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy "$output" > ffmpeg.2.log 2>&1
+ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy "$output" >"$mergelog" 2>&1
 if [[ $? -eq 0 ]]; then
-  echo "Successfully merge \"$output\" file."
+  echo "Successfully merged \"$output\"."
 else
-  echo "Error: Merging \"$output\" file errors."
+  echo "Error: Failed to merge \"$output\"."
   exit 1
 fi

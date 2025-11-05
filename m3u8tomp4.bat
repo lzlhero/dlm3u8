@@ -5,7 +5,7 @@
 
 :: display usage information
 if "%~1"=="" (
-  echo Usage: %~nx0 file.m3u8 [output.mp4]
+  echo Usage: %~nx0 filename.m3u8 [filename.mp4]
   exit /b 1
 )
 
@@ -14,25 +14,29 @@ if not exist "%~1" (
   exit /b 1
 )
 
-:: set mp4 output filename
+:: set basename
 if "%~2"=="" (
-  set "output=output.mp4"
+  set "basename=%~n1"
 ) else (
-  set "output=%~2"
+  set "basename=%~2"
 )
 :trim_dot
-if "%output:~-1%"=="." (
-  set "output=%output:~0,-1%"
+if "%basename:~-1%"=="." (
+  set "basename=%basename:~0,-1%"
   goto trim_dot
 )
-set "ext=%output:~-4%"
-if /i not "%ext%"==".mp4" (
-  set "output=%output%.mp4"
+set "ext=%basename:~-4%"
+if /i "%ext%"==".mp4" (
+  set "basename=%basename:~0,-4%"
 )
+
+:: set input file and output file
+set "input=%~1"
+set "output=%basename%.mp4"
 
 :: validate output file name
 if not exist "%output%" (
-  copy NUL "%output%" >nul 2>&1
+  copy NUL "%output%" >NUL 2>&1
   if %ERRORLEVEL%==0 (
     del /f /q "%output%"
   ) else (
@@ -41,36 +45,36 @@ if not exist "%output%" (
   )
 )
 
-:: remove last fixed.m3u8
-if exist "fixed.m3u8" (
-  del /f /q "fixed.m3u8"
+:: check the fixm3u8 flag in the input file
+find "# rebuilder: fixm3u8" "%input%" >NUL
+if %ERRORLEVEL%==0 (
+  goto merge
 )
 
-:: set m3u8 input file name
-set "input=%~1"
-
-:: generate ffmpeg checking log
-set "ffmpeglog=ffmpeg.1.log"
-echo Generating "%ffmpeglog%" for advertisement removal...
-ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy -f null NUL > "%ffmpeglog%" 2>&1
+:: generate ffmpeg scan log
+set "scanlog=%basename%.ffmpeg.scan.log"
+echo Generating "%scanlog%" for advertisement removal...
+ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy -f null NUL > "%scanlog%" 2>&1
 if not %ERRORLEVEL%==0 (
-  echo Error: Generating "%ffmpeglog%" file errors.
+  echo Error: Generating "%scanlog%" file errors.
   exit /b 1
 )
 
-:: generate fixed.m3u8 by ffmpeg log
-node "%~dp0\js\fixm3u8.js" "%input%" "%ffmpeglog%"
-if exist "fixed.m3u8" (
-  set "input=fixed.m3u8"
+:: rebuild m3u8 to remove ads
+node "%~dp0\js\fixm3u8.js" "%input%" "%scanlog%"
+if not %ERRORLEVEL%==0 (
+  exit /b 1
 )
 
+:merge
 :: merge all ts files to mp4 file
+set "mergelog=%basename%.ffmpeg.merge.log"
 echo.
 echo Merging "%output%" based on "%input%"...
-ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy "%output%" > ffmpeg.2.log 2>&1
+ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy "%output%" > "%mergelog%" 2>&1
 if %ERRORLEVEL%==0 (
-  echo Successfully merge "%output%" file.
+  echo Successfully merged "%output%".
 ) else (
-  echo Error: Merging "%output%" file errors.
+  echo Error: Failed to merge "%output%".
   exit /b 1
 )

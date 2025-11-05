@@ -4,23 +4,27 @@
 @echo off & setlocal enabledelayedexpansion & goto main
 
 :fn_dlm3u8
-  :: set mp4 output file name
-  if "%output%"=="" (
-    set "output=output.mp4"
+  :: set basename
+  if "%basename%"=="" (
+    set "basename=output"
   )
   :trim_dot
-  if "%output:~-1%"=="." (
-    set "output=%output:~0,-1%"
+  if "%basename:~-1%"=="." (
+    set "basename=%basename:~0,-1%"
     goto trim_dot
   )
-  set "ext=%output:~-4%"
-  if /i not "%ext%"==".mp4" (
-    set "output=%output%.mp4"
+  set "ext=%basename:~-4%"
+  if /i "%ext%"==".mp4" (
+    set "basename=%basename:~0,-4%"
   )
+
+  :: set input file and output file
+  set "input=%basename%.m3u8"
+  set "output=%basename%.mp4"
 
   :: validate output file name
   if not exist "%output%" (
-    copy NUL "%output%" >nul 2>&1
+    copy NUL "%output%" >NUL 2>&1
     if %ERRORLEVEL%==0 (
       del /f /q "%output%"
     ) else (
@@ -29,63 +33,56 @@
     )
   )
 
-  :: remove last fixed.m3u8
-  if exist "fixed.m3u8" (
-    del /f /q "fixed.m3u8"
-  )
-
   :: download m3u8 file
-  aria2c --allow-overwrite=true --continue=false --split=1 -q -o index.m3u8 "%url%" >nul 2>&1
+  aria2c --allow-overwrite=true --continue=false --split=1 -q -o "%input%" "%url%" >NUL 2>&1
   if %ERRORLEVEL%==0 (
-    echo Download "%url%" as "index.m3u8" OK.
+    echo Download "%url%" as "%input%" OK.
   ) else (
-    echo Error: Download "%url%" failed.
+    echo Error: Failed to download "%url%"
     exit /b 1
   )
 
-  :: generate aria2c.txt, file.m3u8 by index.m3u8
-  node "%~dp0\js\ppm3u8.js" index.m3u8 "%url%"
+  :: rebuild m3u8, generate aria2c file
+  node "%~dp0\js\ppm3u8.js" "%input%" "%url%"
   if not %ERRORLEVEL%==0 (
     exit /b 1
   )
 
-  :: download related files by aria2c.txt
+  :: download files from aria2c input file
   echo.
-  echo Starting to download all related files...
-  aria2c -i aria2c.txt
+  echo Starting to download files from "%basename%.aria2c.txt"...
+  aria2c -i "%basename%.aria2c.txt"
   if not %ERRORLEVEL%==0 (
     echo.
-    echo Download "%url%" related files errors.
+    echo Error: Failed to download some files related to "%url%".
     exit /b 1
   )
 
-  :: set m3u8 input file name
-  set "input=file.m3u8"
-
-  :: generate ffmpeg checking log
-  set "ffmpeglog=ffmpeg.1.log"
+  :: generate ffmpeg scan log
+  set "scanlog=%basename%.ffmpeg.scan.log"
   echo.
-  echo Generating "%ffmpeglog%" for advertisement removal...
-  ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy -f null NUL > "%ffmpeglog%" 2>&1
+  echo Generating "%scanlog%" for advertisement removal...
+  ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy -f null NUL > "%scanlog%" 2>&1
   if not %ERRORLEVEL%==0 (
-    echo Error: Generating "%ffmpeglog%" file errors.
+    echo Error: Generating "%scanlog%" file errors.
     exit /b 1
   )
 
-  :: generate fixed.m3u8 by ffmpeg log
-  node "%~dp0\js\fixm3u8.js" "%input%" "%ffmpeglog%"
-  if exist "fixed.m3u8" (
-    set "input=fixed.m3u8"
+  :: rebuild m3u8 to remove ads
+  node "%~dp0\js\fixm3u8.js" "%input%" "%scanlog%"
+  if not %ERRORLEVEL%==0 (
+    exit /b 1
   )
 
   :: merge all ts files to mp4 file
+  set "mergelog=%basename%.ffmpeg.merge.log"
   echo.
   echo Merging "%output%" based on "%input%"...
-  ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy "%output%" > ffmpeg.2.log 2>&1
+  ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy "%output%" > "%mergelog%" 2>&1
   if %ERRORLEVEL%==0 (
-    echo Successfully merge "%output%" file.
+    echo Successfully merged "%output%".
   ) else (
-    echo Error: Merging "%output%" file errors.
+    echo Error: Failed to merge "%output%".
     exit /b 1
   )
   exit /b 0
@@ -125,7 +122,7 @@ if "%~1"=="" (
 if not "%~1"=="-i" (
   :: normal
   set "url=%~1"
-  set "output=%~2"
+  set "basename=%~2"
 
   call :fn_dlm3u8
 ) else (
@@ -151,10 +148,10 @@ if not "%~1"=="-i" (
         set "url=%%a"
         if "%%b"=="" (
           set /a count+=1
-          set "output=00!count!"
-          set "output=!output:~-3!"
+          set "basename=00!count!"
+          set "basename=!basename:~-3!"
         ) else (
-          set "output=%%b"
+          set "basename=%%b"
         )
 
         echo ----------------------------------------

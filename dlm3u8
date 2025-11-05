@@ -6,17 +6,22 @@
 trap 'exit 130' INT
 
 fn_dlm3u8() {
-  # set mp4 output file name
-  if [[ -z "$output" ]]; then
-    output="output.mp4"
+  # set basename
+  if [[ -z "$basename" ]]; then
+    basename="output"
   fi
-  while [[ "$output" == *"." ]]; do
-    output="${output%.}"
+  # trim dot
+  while [[ "${basename: -1}" == "." ]]; do
+    basename="${basename%.}"
   done
-  ext="$(echo "${output: -4}" | tr '[:upper:]' '[:lower:]')"
-  if [[ "$ext" != ".mp4" ]]; then
-    output="${output}.mp4"
+  ext="$(echo "${basename: -4}" | tr '[:upper:]' '[:lower:]')"
+  if [[ "$ext" == ".mp4" ]]; then
+    basename="${basename%.*}"
   fi
+
+  # set input file and output file
+  input="${basename}.m3u8"
+  output="${basename}.mp4"
 
   # validate output file name
   if [[ ! -f "$output" ]]; then
@@ -29,63 +34,56 @@ fn_dlm3u8() {
     fi
   fi
 
-  # remove last fixed.m3u8
-  if [[ -f "fixed.m3u8" ]]; then
-    rm -f "fixed.m3u8"
-  fi
-
   # download m3u8 file
-  aria2c --allow-overwrite=true --continue=false --split=1 -q -o index.m3u8 "$url" >/dev/null 2>&1
+  aria2c --allow-overwrite=true --continue=false --split=1 -q -o "$input" "$url" >/dev/null 2>&1
   if [[ $? -eq 0 ]]; then
-    echo "Download \"$url\" as \"index.m3u8\" OK."
+    echo "Download \"$url\" as \"$input\" OK."
   else
-    echo "Error: Download \"$url\" failed."
+    echo "Error: Failed to download \"$url\"."
     return 1
   fi
 
-  # generate aria2c.txt, file.m3u8 by index.m3u8
-  node "$(dirname "$0")/js/ppm3u8.js" index.m3u8 "$url"
+  # rebuild m3u8, generate aria2c file
+  node "$(dirname "$0")/js/ppm3u8.js" "$input" "$url"
   if [[ $? -ne 0 ]]; then
     return 1
   fi
 
-  # download related files by aria2c.txt
+  # download files from aria2c input file
   echo
-  echo "Starting to download all related files..."
-  aria2c -i aria2c.txt
+  echo "Starting to download files from \"${basename}.aria2c.txt\"..."
+  aria2c -i "${basename}.aria2c.txt"
   if [[ $? -ne 0 ]]; then
     echo
-    echo "Download \"$url\" related files errors."
+    echo "Error: Failed to download some files related to \"$url\""
     return 1
   fi
 
-  # set m3u8 input file name
-  input="file.m3u8"
-
-  # generate ffmpeg checking log
-  ffmpeglog="ffmpeg.1.log"
+  # generate ffmpeg scan log
+  scanlog="${basename}.ffmpeg.scan.log"
   echo
-  echo "Generating \"$ffmpeglog\" for advertisement removal..."
-  ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy -f null /dev/null > "$ffmpeglog" 2>&1
+  echo "Generating \"$scanlog\" for advertisement removal..."
+  ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy -f null /dev/null > "$scanlog" 2>&1
   if [[ $? -ne 0 ]]; then
-    echo "Error: Generating \"$ffmpeglog\" file errors."
+    echo "Error: Generating \"$scanlog\" file errors."
     return 1
   fi
 
-  # generate fixed.m3u8 by ffmpeg log
-  node "$(dirname "$0")/js/fixm3u8.js" "$input" "$ffmpeglog"
-  if [[ -f "fixed.m3u8" ]]; then
-    input="fixed.m3u8"
+  # rebuild m3u8 to remove ads
+  node "$(dirname "$0")/js/fixm3u8.js" "$input" "$scanlog"
+  if [ $? -ne 0 ]; then
+    return 1
   fi
 
   # merge all ts files to mp4 file
+  mergelog="${basename}.ffmpeg.merge.log"
   echo
   echo "Merging \"$output\" based on \"$input\"..."
-  ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy "$output" > ffmpeg.2.log 2>&1
+  ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy "$output" >"$mergelog" 2>&1
   if [[ $? -eq 0 ]]; then
-    echo "Successfully merge \"$output\" file."
+    echo "Successfully merged \"$output\"."
   else
-    echo "Error: Merging \"$output\" file errors."
+    echo "Error: Failed to merge \"$output\"."
     return 1
   fi
   return 0
@@ -112,7 +110,7 @@ fi
 if [[ "$1" != "-i" ]]; then
   # normal
   url="$1"
-  output="$2"
+  basename="$2"
 
   fn_dlm3u8
 else
@@ -143,9 +141,9 @@ else
       url="${BASH_REMATCH[1]}"
       if [[ -z "${BASH_REMATCH[3]}" ]]; then
         ((count++))
-        output=$(printf "%03d" "$count")
+        basename=$(printf "%03d" "$count")
       else
-        output="${BASH_REMATCH[3]}"
+        basename="${BASH_REMATCH[3]}"
       fi
 
       echo "----------------------------------------"

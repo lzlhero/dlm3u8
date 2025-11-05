@@ -43,9 +43,9 @@ dlm3u8 -i list.txt
 ```
 Example of list.txt:
 ```
-https://example.com/1/index.m3u8 file-name1
-https://example.com/2/index.m3u8 file-name2
-https://example.com/3/index.m3u8 file-name3
+https://example.com/1/index.m3u8 filename1
+https://example.com/2/index.m3u8 filename2
+https://example.com/3/index.m3u8 filename3
 ```
 **Note**: The input list file is used for batch downloading m3u8 URLs. Each line represents a download task, with the `URL` and `output file` separated by one or more `spaces` or `tabs`.
 
