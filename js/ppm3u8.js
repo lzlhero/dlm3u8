@@ -110,7 +110,7 @@ const flag = '\n# rebuilder: ppm3u8';
   }
   console.log(`Wrote "${listFile}" file.`);
 
-  // save rebuild m3u8 file
+  // save the rebuilt m3u8 file
   var outputM3u8File = inputM3u8File;
   try {
     await writeFile(outputM3u8File, m3u8Lines.join('\n') + flag, 'utf8');

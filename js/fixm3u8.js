@@ -86,7 +86,7 @@ const flag = '\n# rebuilder: fixm3u8';
     console.log(`No "discontinuity" keyword in "${logFile}".`);
   }
 
-  // save rebuild m3u8 file
+  // save the rebuilt m3u8 file
   var outputM3u8File = inputM3u8File;
   try {
     await writeFile(outputM3u8File, m3u8Content + flag, 'utf8');
