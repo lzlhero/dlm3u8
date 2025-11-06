@@ -80,5 +80,5 @@ if [[ $? -eq 0 ]]; then
   exit 1
 fi
 
-rm -f "$input" "$scan_log" "$merge_log"
+rm -f "$scan_log" "$merge_log"
 echo "Successfully merged \"$output\"."

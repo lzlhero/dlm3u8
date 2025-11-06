@@ -84,5 +84,5 @@ if %ERRORLEVEL%==0 (
   exit /b 1
 )
 
-del /f /q "%input%" "%scan_log%" "%merge_log%" >NUL 2>&1
+del /f /q "%scan_log%" "%merge_log%" >NUL 2>&1
 echo Successfully merged "%output%".
