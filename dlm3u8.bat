@@ -26,7 +26,7 @@
   if not exist "%output%" (
     copy NUL "%output%" >NUL 2>&1
     if %ERRORLEVEL%==0 (
-      del /f /q "%output%"
+      del /f /q "%output%" >NUL 2>&1
     ) else (
       echo Error: Invalid output file name or path in "%output%"
       exit /b 1
@@ -49,42 +49,53 @@
   )
 
   :: download files from aria2c input file
+  set "aria2c_input=%basename%.aria2c.txt"
   echo.
-  echo Starting to download files from "%basename%.aria2c.txt"...
-  aria2c -i "%basename%.aria2c.txt"
-  if not %ERRORLEVEL%==0 (
+  echo Starting to download files from "%aria2c_input%"...
+  aria2c -i "%aria2c_input%"
+  if %ERRORLEVEL%==0 (
+    del /f /q "%aria2c_input%" >NUL 2>&1
+  ) else (
     echo.
     echo Error: Failed to download some files related to "%url%".
     exit /b 1
   )
 
   :: generate ffmpeg scan log
-  set "scanlog=%basename%.ffmpeg.scan.log"
+  set "scan_log=%basename%.ffmpeg.scan.log"
   echo.
-  echo Generating "%scanlog%" for advertisement removal...
-  ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy -f null NUL > "%scanlog%" 2>&1
+  echo Generating "%scan_log%" for advertisement removal...
+  ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy -f null NUL > "%scan_log%" 2>&1
   if not %ERRORLEVEL%==0 (
-    echo Error: Generating "%scanlog%" file errors.
+    echo Error: Generating "%scan_log%" file errors.
     exit /b 1
   )
 
   :: rebuild m3u8 to remove ads
-  node "%~dp0\js\fixm3u8.js" "%input%" "%scanlog%"
+  node "%~dp0\js\fixm3u8.js" "%input%" "%scan_log%"
   if not %ERRORLEVEL%==0 (
     exit /b 1
   )
 
   :: merge all ts files to mp4 file
-  set "mergelog=%basename%.ffmpeg.merge.log"
+  set "merge_log=%basename%.ffmpeg.merge.log"
   echo.
   echo Merging "%output%" based on "%input%"...
-  ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy "%output%" > "%mergelog%" 2>&1
-  if %ERRORLEVEL%==0 (
-    echo Successfully merged "%output%".
-  ) else (
+  ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy "%output%" > "%merge_log%" 2>&1
+  if not %ERRORLEVEL%==0 (
     echo Error: Failed to merge "%output%".
     exit /b 1
   )
+
+  :: check the "discontinuity" keyword in ffmpeg merge log
+  find "discontinuity" "%merge_log%" >NUL
+  if %ERRORLEVEL%==0 (
+    echo "%output%" was merged successfully, but ad removal failed. Please check the log files for details.
+    exit /b 1
+  )
+
+  del /f /q "%input%" "%scan_log%" "%merge_log%" >NUL 2>&1
+  echo Successfully merged "%output%".
   exit /b 0
 
 :fn_rtrim_line

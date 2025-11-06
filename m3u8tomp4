@@ -48,29 +48,37 @@ fi
 grep -q "# rebuilder: fixm3u8" "$input"
 if [ $? -eq 1 ]; then
   # generate ffmpeg scan log
-  scanlog="${basename}.ffmpeg.scan.log"
-  echo "Generating \"$scanlog\" for advertisement removal..."
-  ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy -f null /dev/null >"$scanlog" 2>&1
+  scan_log="${basename}.ffmpeg.scan.log"
+  echo "Generating \"$scan_log\" for advertisement removal..."
+  ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy -f null /dev/null >"$scan_log" 2>&1
   if [[ $? -ne 0 ]]; then
-    echo "Error: Generating \"$scanlog\" file errors."
+    echo "Error: Generating \"$scan_log\" file errors."
     exit 1
   fi
 
   # rebuild m3u8 to remove ads
-  node "$(dirname "$0")/js/fixm3u8.js" "$input" "$scanlog"
+  node "$(dirname "$0")/js/fixm3u8.js" "$input" "$scan_log"
   if [ $? -ne 0 ]; then
     exit 1
   fi
 fi
 
 # merge all ts files to mp4 file
-mergelog="${basename}.ffmpeg.merge.log"
+merge_log="${basename}.ffmpeg.merge.log"
 echo
 echo "Merging \"$output\" based on \"$input\"..."
-ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy "$output" >"$mergelog" 2>&1
-if [[ $? -eq 0 ]]; then
-  echo "Successfully merged \"$output\"."
-else
+ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy "$output" >"$merge_log" 2>&1
+if [[ $? -ne 0 ]]; then
   echo "Error: Failed to merge \"$output\"."
   exit 1
 fi
+
+#check the "discontinuity" keyword in ffmpeg merge log
+grep -q "discontinuity" "$merge_log"
+if [[ $? -eq 0 ]]; then
+  echo "\"$output\" was merged successfully, but ad removal failed. Please check the log files for details."
+  exit 1
+fi
+
+rm -f "$input" "$scan_log" "$merge_log"
+echo "Successfully merged \"$output\"."

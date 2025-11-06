@@ -50,46 +50,57 @@ fn_dlm3u8() {
   fi
 
   # download files from aria2c input file
+  aria2c_input="${basename}.aria2c.txt"
   echo
-  echo "Starting to download files from \"${basename}.aria2c.txt\"..."
-  aria2c -i "${basename}.aria2c.txt"
-  if [[ $? -ne 0 ]]; then
+  echo "Starting to download files from \"$aria2c_input\"..."
+  aria2c -i "$aria2c_input"
+  if [[ $? -eq 0 ]]; then
+    rm -f "$aria2c_input"
+  else
     echo
     echo "Error: Failed to download some files related to \"$url\""
     return 1
   fi
 
   # generate ffmpeg scan log
-  scanlog="${basename}.ffmpeg.scan.log"
+  scan_log="${basename}.ffmpeg.scan.log"
   echo
-  echo "Generating \"$scanlog\" for advertisement removal..."
-  ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy -f null /dev/null > "$scanlog" 2>&1
+  echo "Generating \"$scan_log\" for advertisement removal..."
+  ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy -f null /dev/null > "$scan_log" 2>&1
   if [[ $? -ne 0 ]]; then
-    echo "Error: Generating \"$scanlog\" file errors."
+    echo "Error: Generating \"$scan_log\" file errors."
     return 1
   fi
 
   # rebuild m3u8 to remove ads
-  node "$(dirname "$0")/js/fixm3u8.js" "$input" "$scanlog"
+  node "$(dirname "$0")/js/fixm3u8.js" "$input" "$scan_log"
   if [ $? -ne 0 ]; then
     return 1
   fi
 
   # merge all ts files to mp4 file
-  mergelog="${basename}.ffmpeg.merge.log"
+  merge_log="${basename}.ffmpeg.merge.log"
   echo
   echo "Merging \"$output\" based on \"$input\"..."
-  ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy "$output" >"$mergelog" 2>&1
-  if [[ $? -eq 0 ]]; then
-    echo "Successfully merged \"$output\"."
-  else
+  ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy "$output" >"$merge_log" 2>&1
+  if [[ $? -ne 0 ]]; then
     echo "Error: Failed to merge \"$output\"."
     return 1
   fi
+
+  #check the "discontinuity" keyword in ffmpeg merge log
+  grep -q "discontinuity" "$merge_log"
+  if [[ $? -eq 0 ]]; then
+    echo "\"$output\" was merged successfully, but ad removal failed. Please check the log files for details."
+    return 1
+  fi
+
+  rm -f "$input" "$scan_log" "$merge_log"
+  echo "Successfully merged \"$output\"."
   return 0
 }
 
-#main
+# main
 # display usage information
 if [[ -z "$1" ]]; then
   echo "Usage: dlm3u8 m3u8-url [output.mp4]"
