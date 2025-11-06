@@ -30,9 +30,11 @@ if /i "%ext%"==".mp4" (
   set "basename=%basename:~0,-4%"
 )
 
-:: set input file and output file
+:: set files' name
 set "input=%~1"
 set "output=%basename%.mp4"
+set "scan_log=%basename%.ffmpeg.scan.log"
+set "merge_log=%basename%.ffmpeg.merge.log"
 
 :: validate output file name
 if not exist "%output%" (
@@ -52,7 +54,6 @@ if %ERRORLEVEL%==0 (
 )
 
 :: generate ffmpeg scan log
-set "scan_log=%basename%.ffmpeg.scan.log"
 echo Generating "%scan_log%" for advertisement removal...
 ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy -f null NUL > "%scan_log%" 2>&1
 if not %ERRORLEVEL%==0 (
@@ -68,7 +69,6 @@ if not %ERRORLEVEL%==0 (
 
 :merge
 :: merge all ts files to mp4 file
-set "merge_log=%basename%.ffmpeg.merge.log"
 echo.
 echo Merging "%output%" based on "%input%"...
 ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy "%output%" > "%merge_log%" 2>&1

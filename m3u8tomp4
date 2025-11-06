@@ -29,9 +29,11 @@ if [[ "$ext" == ".mp4" ]]; then
   basename="${basename%.*}"
 fi
 
-# set input file and output file
+# set files' name
 input="$1"
 output="${basename}.mp4"
+scan_log="${basename}.ffmpeg.scan.log"
+merge_log="${basename}.ffmpeg.merge.log"
 
 # validate output file name
 if [[ ! -f "$output" ]]; then
@@ -48,7 +50,6 @@ fi
 grep -q "# rebuilder: fixm3u8" "$input"
 if [ $? -eq 1 ]; then
   # generate ffmpeg scan log
-  scan_log="${basename}.ffmpeg.scan.log"
   echo "Generating \"$scan_log\" for advertisement removal..."
   ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy -f null /dev/null >"$scan_log" 2>&1
   if [[ $? -ne 0 ]]; then
@@ -64,7 +65,6 @@ if [ $? -eq 1 ]; then
 fi
 
 # merge all ts files to mp4 file
-merge_log="${basename}.ffmpeg.merge.log"
 echo
 echo "Merging \"$output\" based on \"$input\"..."
 ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy "$output" >"$merge_log" 2>&1

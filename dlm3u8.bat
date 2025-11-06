@@ -18,9 +18,12 @@
     set "basename=%basename:~0,-4%"
   )
 
-  :: set input file and output file
+  :: set files' name
   set "input=%basename%.m3u8"
   set "output=%basename%.mp4"
+  set "aria2c_input=%basename%.aria2c.txt"
+  set "scan_log=%basename%.ffmpeg.scan.log"
+  set "merge_log=%basename%.ffmpeg.merge.log"
 
   :: validate output file name
   if not exist "%output%" (
@@ -49,7 +52,6 @@
   )
 
   :: download files from aria2c input file
-  set "aria2c_input=%basename%.aria2c.txt"
   echo.
   echo Starting to download files from "%aria2c_input%"...
   aria2c -i "%aria2c_input%"
@@ -62,7 +64,6 @@
   )
 
   :: generate ffmpeg scan log
-  set "scan_log=%basename%.ffmpeg.scan.log"
   echo.
   echo Generating "%scan_log%" for advertisement removal...
   ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy -f null NUL > "%scan_log%" 2>&1
@@ -78,7 +79,6 @@
   )
 
   :: merge all ts files to mp4 file
-  set "merge_log=%basename%.ffmpeg.merge.log"
   echo.
   echo Merging "%output%" based on "%input%"...
   ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy "%output%" > "%merge_log%" 2>&1

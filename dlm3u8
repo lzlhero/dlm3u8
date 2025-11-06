@@ -19,9 +19,12 @@ fn_dlm3u8() {
     basename="${basename%.*}"
   fi
 
-  # set input file and output file
+  # set files' name
   input="${basename}.m3u8"
   output="${basename}.mp4"
+  aria2c_input="${basename}.aria2c.txt"
+  scan_log="${basename}.ffmpeg.scan.log"
+  merge_log="${basename}.ffmpeg.merge.log"
 
   # validate output file name
   if [[ ! -f "$output" ]]; then
@@ -50,7 +53,6 @@ fn_dlm3u8() {
   fi
 
   # download files from aria2c input file
-  aria2c_input="${basename}.aria2c.txt"
   echo
   echo "Starting to download files from \"$aria2c_input\"..."
   aria2c -i "$aria2c_input"
@@ -63,7 +65,6 @@ fn_dlm3u8() {
   fi
 
   # generate ffmpeg scan log
-  scan_log="${basename}.ffmpeg.scan.log"
   echo
   echo "Generating \"$scan_log\" for advertisement removal..."
   ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy -f null /dev/null > "$scan_log" 2>&1
@@ -79,7 +80,6 @@ fn_dlm3u8() {
   fi
 
   # merge all ts files to mp4 file
-  merge_log="${basename}.ffmpeg.merge.log"
   echo
   echo "Merging \"$output\" based on \"$input\"..."
   ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy "$output" >"$merge_log" 2>&1
