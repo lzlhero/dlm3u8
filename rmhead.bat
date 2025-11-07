@@ -14,8 +14,10 @@ if "%~2"=="" (
   exit /b 1
 )
 
+set /a start_byte=%1+1
+
 for %%F in (%2) do (
   echo %%~nxF
-  dd if="%%~fF" of="%%~dpnF.tmp" bs="%1" skip=1 status=none
+  tail -c +%start_byte% "%%~fF" >"%%~dpnF.tmp"
   move /Y "%%~dpnF.tmp" "%%~fF" >NUL
 )
