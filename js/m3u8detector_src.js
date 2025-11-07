@@ -109,8 +109,7 @@ function createUI() {
       right: 10px;
       padding: 5px;
       border-radius: 5px;
-      background: #007bff;
-      opacity: 0.9;
+      background: rgba(0, 123, 255, 0.7);
     }
 
     #m3u8-detector-panel button {
@@ -130,8 +129,8 @@ function createUI() {
     }
 
     #m3u8-detector-panel button:disabled {
-      color: #838383;
-      background: #ddd;
+      color: #777;
+      background: #b0b0b0;
       cursor: not-allowed;
     }
 
