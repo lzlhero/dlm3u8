@@ -193,12 +193,18 @@ function domReady() {
       if (mutation.type === 'childList') {
         mutation.addedNodes.forEach(function(node) {
           if (node.nodeName === 'IFRAME') {
-            debug('iframe has been added');
+            debug('Observed an iframe element added');
             injectScript(node);
           } else if (node.nodeName === 'VIDEO') {
             checkVideo(node);
           } else if (node.querySelectorAll) {
             node.querySelectorAll('video').forEach(checkVideo);
+
+            var iframes = node.querySelectorAll('iframe');
+            if (iframes.length) {
+              debug('Observed iframe elements added: ' + iframes.length);
+              iframes.forEach(injectScript);
+            }
           }
         });
       } else if (mutation.type === 'attributes') {
