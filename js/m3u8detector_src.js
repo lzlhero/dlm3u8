@@ -105,9 +105,14 @@ function createUI() {
     #m3u8-detector-panel {
       position: fixed;
       z-index: 2147483647;
+      box-sizing: content-box;
       top: 10px;
       right: 10px;
+      margin: 0;
       padding: 5px;
+      width: auto;
+      height: auto;
+      border: none;
       border-radius: 5px;
       background: rgba(0, 123, 255, 0.7);
     }
@@ -117,7 +122,9 @@ function createUI() {
       justify-content: center;
       align-items: center;
       box-sizing: content-box;
+      margin: 0;
       padding: 5px;
+      width: auto;
       height: 14px;
       font-size: 14px;
       border: none;
