@@ -55,7 +55,7 @@ if %ERRORLEVEL%==0 (
 
 :: generate ffmpeg scan log
 echo Generating "%scan_log%" for advertisement removal...
-ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy -f null NUL > "%scan_log%" 2>&1
+ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy -f null NUL >"%scan_log%" 2>&1
 if not %ERRORLEVEL%==0 (
   echo Error: Generating "%scan_log%" file errors.
   exit /b 1
@@ -71,7 +71,7 @@ if not %ERRORLEVEL%==0 (
 :: merge all ts files to mp4 file
 echo.
 echo Merging "%output%" based on "%input%"...
-ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy "%output%" > "%merge_log%" 2>&1
+ffmpeg -y -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy "%output%" >"%merge_log%" 2>&1
 if not %ERRORLEVEL%==0 (
   echo Error: Failed to merge "%output%".
   exit /b 1
