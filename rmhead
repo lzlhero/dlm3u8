@@ -14,10 +14,11 @@ if [ -z "$2" ]; then
   exit 1
 fi
 
+start_byte=$(($1+1))
+
 for F in "${@:2}"; do
   [ -f "$F" ] || continue
   echo "$(basename "$F")"
-  dd if="$F" of="${F%.*}.tmp" bs="$1" skip=1 > /dev/null 2>&1
-  #tail -c +$(($1+1)) "$F" > "${F%.*}.tmp"
+  tail -c +$start_byte "$F" >"${F%.*}.tmp"
   mv -f "${F%.*}.tmp" "$F" >/dev/null 2>&1
 done
