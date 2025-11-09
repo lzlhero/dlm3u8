@@ -53,7 +53,7 @@ if [ $? -eq 1 ]; then
   echo "Generating \"$scan_log\" for advertisement removal..."
   ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "$input" -c copy -f null /dev/null >"$scan_log" 2>&1
   if [[ $? -ne 0 ]]; then
-    echo "Error: Generating \"$scan_log\" file errors."
+    echo "Error: There are errors in the generated \"$scan_log\"."
     exit 1
   fi
 

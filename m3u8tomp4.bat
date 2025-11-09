@@ -57,7 +57,7 @@ if %ERRORLEVEL%==0 (
 echo Generating "%scan_log%" for advertisement removal...
 ffmpeg -allowed_extensions ALL -protocol_whitelist "file,crypto,data" -i "%input%" -c copy -f null NUL >"%scan_log%" 2>&1
 if not %ERRORLEVEL%==0 (
-  echo Error: Generating "%scan_log%" file errors.
+  echo Error: There are errors in the generated "%scan_log%".
   exit /b 1
 )
 
