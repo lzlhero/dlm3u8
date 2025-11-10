@@ -59,7 +59,7 @@ if [ $? -eq 1 ]; then
 
   # rebuild m3u8 to remove ads
   node "$(dirname "$0")/js/fixm3u8.js" "$input" "$scan_log"
-  if [ $? -ne 0 ]; then
+  if [[ $? -ne 0 ]]; then
     exit 1
   fi
 fi

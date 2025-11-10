@@ -9,6 +9,15 @@ if "%~1"=="" (
   exit /b 1
 )
 
+set "test="
+for /f "delims=0123456789" %%i in ("%~1") do (
+ set test=%%i
+)
+if defined test (
+  echo Error: bytes-length must be a positive integer. "%~1" is not.
+  exit /b 1
+)
+
 if "%~2"=="" (
   echo Error: missing files.
   exit /b 1
@@ -16,8 +25,17 @@ if "%~2"=="" (
 
 set /a start_byte=%1+1
 
-for %%F in (%2) do (
-  echo %%~nxF
-  tail -c +%start_byte% "%%~fF" >"%%~dpnF.tmp"
-  move /Y "%%~dpnF.tmp" "%%~fF" >NUL
-)
+:loop
+  shift
+  if "%~1"=="" exit /b
+
+  for %%F in ("%~1") do (
+    if exist "%%~F" (
+      if not exist "%%~F\" (
+        echo %%~nxF
+        tail -c +%start_byte% "%%~fF" >"%%~dpnF.tmp"
+        move /Y "%%~dpnF.tmp" "%%~fF" >NUL
+      )
+    )
+  )
+goto loop

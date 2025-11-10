@@ -3,13 +3,18 @@
 # Copyright (c) 2025 lzlhero
 # Licensed under the GNU General Public License v3.0 (GPL-3.0)
 
-if [ -z "$1" ]; then
+if [[ -z "$1" ]]; then
   echo "Usage: $(basename "$0") bytes-length files"
   echo "Note: The files argument supports file wildcards."
   exit 1
 fi
 
-if [ -z "$2" ]; then
+if [[ ! "$1" =~ ^[1-9][0-9]*$ ]]; then
+  echo "Error: bytes-length must be a positive integer. \"$1\" is not."
+  exit 1
+fi
+
+if [[ -z "$2" ]]; then
   echo "Error: missing files."
   exit 1
 fi
@@ -17,7 +22,7 @@ fi
 start_byte=$(($1+1))
 
 for F in "${@:2}"; do
-  [ -f "$F" ] || continue
+  [[ -f "$F" ]] || continue
   echo "$(basename "$F")"
   tail -c +$start_byte "$F" >"${F%.*}.tmp"
   mv -f "${F%.*}.tmp" "$F" >/dev/null 2>&1

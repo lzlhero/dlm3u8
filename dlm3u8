@@ -75,7 +75,7 @@ fn_dlm3u8() {
 
   # rebuild m3u8 to remove ads
   node "$(dirname "$0")/js/fixm3u8.js" "$input" "$scan_log"
-  if [ $? -ne 0 ]; then
+  if [[ $? -ne 0 ]]; then
     return 1
   fi
 
