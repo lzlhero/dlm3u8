@@ -9,11 +9,8 @@ if "%~1"=="" (
   exit /b 1
 )
 
-set "test="
-for /f "delims=0123456789" %%i in ("%~1") do (
- set test=%%i
-)
-if defined test (
+echo %~1| findstr /R "^[1-9][0-9]*$" >NUL
+if not %ERRORLEVEL%==0 (
   echo Error: bytes-length must be a positive integer. "%~1" is not.
   exit /b 1
 )
