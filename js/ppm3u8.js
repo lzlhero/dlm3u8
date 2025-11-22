@@ -34,7 +34,7 @@ const flag = '\n# rebuilder: ppm3u8';
 
   // check the flag
   if (m3u8Content.lastIndexOf(flag) !== -1) {
-    console.error(`The "${inputM3u8File}" has already been preprocessed.`);
+    console.log(`The "${inputM3u8File}" has already been preprocessed.`);
     return;
   }
 

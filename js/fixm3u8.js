@@ -33,7 +33,7 @@ const flag = '\n# rebuilder: fixm3u8';
 
   // check the flag
   if (m3u8Content.lastIndexOf(flag) !== -1) {
-    console.error(`The "${inputM3u8File}" has already been fixed.`);
+    console.log(`The "${inputM3u8File}" has already been fixed.`);
     return;
   }
 
