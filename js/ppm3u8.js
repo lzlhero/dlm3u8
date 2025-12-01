@@ -50,7 +50,7 @@ const flag = '\n# rebuilder: ppm3u8';
   var baseName = inputM3u8File.substring(0, inputM3u8File.lastIndexOf(".")) || inputM3u8File;
 
   // define download dir
-  const dir = `${baseName}.aria2c.cache`;
+  const dir = `${inputM3u8File}_resources`;
 
   // define list file lines
   var listFileLines = [];
