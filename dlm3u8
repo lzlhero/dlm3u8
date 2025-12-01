@@ -22,10 +22,10 @@ fn_dlm3u8() {
   # set files' name
   input="${basename}.m3u8"
   output="${basename}.mp4"
-  aria2c_input="${basename}.aria2c.txt"
+  aria2c_input="${basename}_aria2c.txt"
   aria2c_cache="${input}_resources"
-  scan_log="${basename}.ffmpeg.scan.log"
-  merge_log="${basename}.ffmpeg.merge.log"
+  scan_log="${basename}_ffmpeg_scan.log"
+  merge_log="${basename}_ffmpeg_merge.log"
 
   # validate output file name
   if [[ ! -f "$output" ]]; then

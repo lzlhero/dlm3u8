@@ -101,7 +101,7 @@ const flag = '\n# rebuilder: ppm3u8';
   }
 
   // save aria2c list file
-  var listFile = `${baseName}.aria2c.txt`;
+  var listFile = `${baseName}_aria2c.txt`;
   try {
     await writeFile(listFile, listFileLines.join('\n'), 'utf8');
   } catch (error) {
