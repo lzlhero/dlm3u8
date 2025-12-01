@@ -46,8 +46,11 @@ const flag = '\n# rebuilder: ppm3u8';
     console.log(`No "DISCONTINUITY" keyword in "${inputM3u8File}".`);
   }
 
+  // get basename
+  var baseName = inputM3u8File.substring(0, inputM3u8File.lastIndexOf(".")) || inputM3u8File;
+
   // define download dir
-  const dir = 'cache';
+  const dir = `${baseName}.aria2c.cache`;
 
   // define list file lines
   var listFileLines = [];
@@ -96,9 +99,6 @@ const flag = '\n# rebuilder: ppm3u8';
       m3u8Lines[i] = `${dir}/${filename}`;
     }
   }
-
-  // get base name
-  var baseName = inputM3u8File.substring(0, inputM3u8File.lastIndexOf(".")) || inputM3u8File;
 
   // save aria2c list file
   var listFile = `${baseName}.aria2c.txt`;

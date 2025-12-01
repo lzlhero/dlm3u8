@@ -22,6 +22,7 @@
   set "input=%basename%.m3u8"
   set "output=%basename%.mp4"
   set "aria2c_input=%basename%.aria2c.txt"
+  set "aria2c_cache=%basename%.aria2c.cache"
   set "scan_log=%basename%.ffmpeg.scan.log"
   set "merge_log=%basename%.ffmpeg.merge.log"
 
@@ -95,6 +96,7 @@
   )
 
   del /f /q "%input%" "%scan_log%" "%merge_log%" >NUL 2>&1
+  rmdir /s /q "%aria2c_cache%" >NUL 2>&1
   echo Successfully merged "%output%".
   exit /b 0
 
