@@ -21,9 +21,9 @@ fn_dlm3u8() {
 
   # set files' name
   input="${basename}.m3u8"
+  input_resources="${input}_resources"
   output="${basename}.mp4"
   aria2c_input="${basename}_aria2c.txt"
-  aria2c_cache="${input}_resources"
   scan_log="${basename}_ffmpeg_scan.log"
   merge_log="${basename}_ffmpeg_merge.log"
 
@@ -97,7 +97,7 @@ fn_dlm3u8() {
   fi
 
   rm -f "$input" "$scan_log" "$merge_log"
-  rm -rf "$aria2c_cache"
+  rm -rf "$input_resources"
   echo "Successfully merged \"$output\"."
   return 0
 }

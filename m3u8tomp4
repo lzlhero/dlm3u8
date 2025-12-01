@@ -31,6 +31,7 @@ fi
 
 # set files' name
 input="$1"
+input_resources="${input}_resources"
 output="${basename}.mp4"
 scan_log="${basename}_ffmpeg_scan.log"
 merge_log="${basename}_ffmpeg_merge.log"
@@ -80,5 +81,6 @@ if [[ $? -eq 0 ]]; then
   exit 1
 fi
 
-rm -f "$scan_log" "$merge_log"
+rm -f "$input" "$scan_log" "$merge_log"
+rm -rf "$input_resources"
 echo "Successfully merged \"$output\"."

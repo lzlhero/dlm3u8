@@ -32,6 +32,7 @@ if /i "%ext%"==".mp4" (
 
 :: set files' name
 set "input=%~1"
+set "input_resources=%input%_resources"
 set "output=%basename%.mp4"
 set "scan_log=%basename%_ffmpeg_scan.log"
 set "merge_log=%basename%_ffmpeg_merge.log"
@@ -84,5 +85,6 @@ if %ERRORLEVEL%==0 (
   exit /b 1
 )
 
-del /f /q "%scan_log%" "%merge_log%" >NUL 2>&1
+del /f /q "%input%" "%scan_log%" "%merge_log%" >NUL 2>&1
+rmdir /s /q "%input_resources%" >NUL 2>&1
 echo Successfully merged "%output%".
