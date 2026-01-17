@@ -17,8 +17,6 @@ For macOS and Linux, make sure the following files are executable:
 ```
 chmod +x dlm3u8
 chmod +x m3u8tomp4
-chmod +x ppm3u8
-chmod +x fixm3u8
 chmod +x rmhead
 chmod +x sget
 ```
