@@ -20,7 +20,7 @@ var copyButton;
 window.__setM3U8URL__ = function(url) {
   if (window.parent === window.self) {
     url = url.split('#')[0];
-    if (m3u8URL === url) return;
+    if (m3u8URL.split('?')[0] === url.split('?')[0]) return;
 
     debug('Set URL: ' + url);
     m3u8URL = url;
