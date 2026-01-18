@@ -21,6 +21,7 @@ fn_dlm3u8() {
 
   # set files' name
   input="${basename}.m3u8"
+  input_url="${basename}_url.txt"
   input_resources="${input}_resources"
   output="${basename}.mp4"
   aria2c_input="${basename}_aria2c.txt"
@@ -47,7 +48,31 @@ fn_dlm3u8() {
     return 1
   fi
 
+  # check the input file is a master m3u8 or not
+  grep -q "#EXT-X-STREAM-INF" "$input"
+  if [[ $? -eq 0 ]]; then
+    echo
+    echo "The \"$input%\" is a master m3u8, try to get the best resolution sub-m3u8 url."
+    node "$(dirname "$0")/js/subm3u8.js" "$input" "$url"
+    if [[ $? -ne 0 ]]; then
+      return 1
+    fi
+    url="$(<"$input_url")"
+    rm -f "$input_url"
+
+    :: download sub-m3u8 file
+    aria2c --allow-overwrite=true --continue=false --split=1 -q -o "$input" "$url" >/dev/null 2>&1
+    if [[ $? -eq 0 ]]; then
+      echo "Download sub-m3u8 \"$url\" as \"$input\" OK."
+    else
+      echo "Error: Failed to download sub-m3u8 \"$url\"."
+      return 1
+    fi
+  fi
+
+  # ppm3u8
   # rebuild m3u8, generate aria2c file
+  echo
   node "$(dirname "$0")/js/ppm3u8.js" "$input" "$url"
   if [[ $? -ne 0 ]]; then
     return 1
@@ -89,7 +114,7 @@ fn_dlm3u8() {
     return 1
   fi
 
-  #check the "discontinuity" keyword in ffmpeg merge log
+  # check the "discontinuity" keyword in ffmpeg merge log
   grep -q "discontinuity" "$merge_log"
   if [[ $? -eq 0 ]]; then
     echo "\"$output\" was merged successfully, but ad removal failed. Please check the log files for details."

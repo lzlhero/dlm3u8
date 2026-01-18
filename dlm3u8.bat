@@ -20,6 +20,7 @@
 
   :: set files' name
   set "input=%basename%.m3u8"
+  set "input_url=%basename%_url.txt"
   set "input_resources=%input%_resources"
   set "output=%basename%.mp4"
   set "aria2c_input=%basename%_aria2c.txt"
@@ -46,7 +47,34 @@
     exit /b 1
   )
 
+  :: check the input file is a master m3u8 or not
+  find "#EXT-X-STREAM-INF" "%input%" >NUL
+  if not %ERRORLEVEL%==0 (
+    goto ppm3u8
+  )
+
+  echo.
+  echo The "%input%" is a master m3u8, try to get the best resolution sub-m3u8 url.
+  node "%~dp0\js\subm3u8.js" "%input%" "%url%"
+  if not %ERRORLEVEL%==0 (
+    exit /b 1
+  )
+  set /p url=<"%input_url%"
+  del /f /q "%input_url%"
+
+  :: download sub-m3u8 file
+  aria2c --allow-overwrite=true --continue=false --split=1 -q -o "%input%" "%url%" >NUL 2>&1
+  if %ERRORLEVEL%==0 (
+    echo.
+    echo Download sub-m3u8 "%url%" as "%input%" OK.
+  ) else (
+    echo Error: Failed to download sub-m3u8 "%url%"
+    exit /b 1
+  )
+
+  :ppm3u8
   :: rebuild m3u8, generate aria2c file
+  echo.
   node "%~dp0\js\ppm3u8.js" "%input%" "%url%"
   if not %ERRORLEVEL%==0 (
     exit /b 1
