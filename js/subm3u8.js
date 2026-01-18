@@ -13,7 +13,7 @@ const { readFile, writeFile } = require('fs/promises');
     process.exit(1);
   }
 
-  console.log(`Get sub-m3u8 "${inputM3u8File}" Results:`);
+  console.log(`Parse sub-m3u8 "${inputM3u8File}" Results:`);
 
   // get input file content
   try {
