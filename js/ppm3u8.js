@@ -38,14 +38,6 @@ const flag = '\n# rebuilder: ppm3u8';
     return;
   }
 
-  // display discontinuity info
-  var matches = m3u8Content.match(/DISCONTINUITY/ig);
-  if (matches) {
-    console.log(`Found ${matches.length} "DISCONTINUITY" keyword in "${inputM3u8File}".`);
-  } else {
-    console.log(`No "DISCONTINUITY" keyword in "${inputM3u8File}".`);
-  }
-
   // get basename
   var baseName = inputM3u8File.substring(0, inputM3u8File.lastIndexOf(".")) || inputM3u8File;
 
