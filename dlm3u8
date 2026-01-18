@@ -61,6 +61,7 @@ fn_dlm3u8() {
     rm -f "$input_url"
 
     # download sub-m3u8 file
+    echo
     aria2c --allow-overwrite=true --continue=false --split=1 -q -o "$input" "$url" >/dev/null 2>&1
     if [[ $? -eq 0 ]]; then
       echo "Download sub-m3u8 \"$url\" as \"$input\" OK."

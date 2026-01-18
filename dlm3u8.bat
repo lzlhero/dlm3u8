@@ -63,9 +63,9 @@
   del /f /q "%input_url%"
 
   :: download sub-m3u8 file
+  echo.
   aria2c --allow-overwrite=true --continue=false --split=1 -q -o "%input%" "%url%" >NUL 2>&1
   if %ERRORLEVEL%==0 (
-    echo.
     echo Download sub-m3u8 "%url%" as "%input%" OK.
   ) else (
     echo Error: Failed to download sub-m3u8 "%url%"
