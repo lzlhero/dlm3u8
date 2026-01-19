@@ -51,21 +51,21 @@ const flag = '\n# rebuilder: ppm3u8';
   var keys = {};
   m3u8Content = m3u8Content.replace(/(?:URI=")([^"]+)(?:")/g, function($0, $1) {
     // get crypto key absolute url
-    var url = inputUrl ? new URL($1, inputUrl) : new URL($1);
+    var url = (inputUrl ? new URL($1, inputUrl) : new URL($1)).href;
 
-    if (!keys[url.href]) {
+    if (!keys[url]) {
       // generate new crypto key file name
-      keys[url.href] = createHash('md5').update(url.href.split('?')[0]).digest('hex') + '.key';
+      keys[url] = createHash('md5').update(url.split('?')[0]).digest('hex') + '.key';
     }
 
-    return `URI="${dir}/${keys[url.href]}"`;
+    return `URI="${dir}/${keys[url]}"`;
   });
 
   // copy crypto key url to aria2c list file
-  for (let href in keys) {
-    listFileLines.push(href);
+  for (let url in keys) {
+    listFileLines.push(url);
     listFileLines.push(`  dir=${dir}`);
-    listFileLines.push(`  out=${keys[href]}`);
+    listFileLines.push(`  out=${keys[url]}`);
   }
 
   // extract ts url, modify m3u8 content
@@ -77,13 +77,13 @@ const flag = '\n# rebuilder: ppm3u8';
     // only scan ts line
     if (!m3u8Line.startsWith('#') && m3u8Line.length > 0) {
       // get ts absolute url
-      url = inputUrl ? new URL(m3u8Line, inputUrl) : new URL(m3u8Line);
+      url = (inputUrl ? new URL(m3u8Line, inputUrl) : new URL(m3u8Line)).href;
 
       // generate new ts file name
-      filename = createHash('md5').update(url.href.split('?')[0]).digest('hex') + '.ts';
+      filename = createHash('md5').update(url.split('?')[0]).digest('hex') + '.ts';
 
       // copy ts url to aria2c list file
-      listFileLines.push(url.href);
+      listFileLines.push(url);
       listFileLines.push(`  dir=${dir}`);
       listFileLines.push(`  out=${filename}`);
 

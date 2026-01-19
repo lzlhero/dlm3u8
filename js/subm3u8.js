@@ -13,7 +13,7 @@ const { readFile, writeFile } = require('fs/promises');
     process.exit(1);
   }
 
-  console.log(`Parse sub-m3u8 "${inputM3u8File}" Results:`);
+  console.log(`Parse Sub-M3U8 "${inputM3u8File}" Results:`);
 
   // get input file content
   try {
@@ -35,32 +35,38 @@ const { readFile, writeFile } = require('fs/promises');
 
   // parse sub-m3u8 urls
   var regex = /#EXT-X-STREAM-INF:.*RESOLUTION=(\d+)x(\d+).*\n([^#]*)/ig;
-  var result, list = [], url;
+  var list = [], url, result;
   while ((result = regex.exec(m3u8Content)) !== null) {
     url = result[3].trim();
     if (!url) continue;
 
-    url = inputUrl ? new URL(url, inputUrl) : new URL(url);
     list.push({
       pixels: result[1] * result[2],
-      url: url.href
+      resolution: `${result[1]}x${result[2]}`,
+      url: (inputUrl ? new URL(url, inputUrl) : new URL(url)).href
     });
   }
 
-  // doesn't contain sub-m3u8 url
-  if (!list.length) {
+  var item;
+  if (list.length === 0) {
+   // m3u8 doesn't contain sub-m3u8 url
     console.log(`The "${inputM3u8File}" doesn't contain sub-m3u8 url.`);
     process.exit(1);
+  } else if (list.length === 1) {
+    // only has one sub-m3u8 url
+    item = list[0];
+  } else {
+    // get the highest resolution sub-m3u8 url
+    list.sort((item1, item2) => item1.pixels - item2.pixels);
+    item = list[list.length - 1];
   }
-
-  // get the best resolution m3u8 url
-  list.sort((item1, item2) => item1.pixels - item2.pixels);
-  url = list[list.length - 1].url;
+  console.log(`Available resolutions: ${list.length}`);
+  console.log(`Highest resolution: ${item.resolution}, ${item.url}`);
 
   // save m3u8 url file
   var urlFile = `${baseName}_url.txt`;
   try {
-    await writeFile(urlFile, url, 'utf8');
+    await writeFile(urlFile, item.url, 'utf8');
   } catch (error) {
     console.error(`Failed to write "${urlFile}".`);
     process.exit(1);
