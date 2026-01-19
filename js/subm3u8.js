@@ -35,7 +35,7 @@ const { readFile, writeFile } = require('fs/promises');
 
   // parse sub-m3u8 urls
   var regex = /#EXT-X-STREAM-INF:.*RESOLUTION=(\d+)x(\d+).*\n([^#]*)/ig;
-  var list = [], url, result;
+  var list = [], result, url;
   while ((result = regex.exec(m3u8Content)) !== null) {
     url = result[3].trim();
     if (!url) continue;
@@ -60,7 +60,7 @@ const { readFile, writeFile } = require('fs/promises');
     list.sort((item1, item2) => item1.pixels - item2.pixels);
     item = list[list.length - 1];
   }
-  console.log(`Available resolutions: ${list.length}`);
+  console.log(`Available resolutions: ${list.map((item) => item.resolution).join(', ')}`);
   console.log(`Highest resolution: ${item.resolution}, ${item.url}`);
 
   // save m3u8 url file
