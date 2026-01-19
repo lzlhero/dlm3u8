@@ -57,8 +57,8 @@ const { readFile, writeFile } = require('fs/promises');
     item = list[0];
   } else {
     // get the highest resolution sub-m3u8 url
-    list.sort((item1, item2) => item1.pixels - item2.pixels);
-    item = list[list.length - 1];
+    list.sort((item1, item2) => item2.pixels - item1.pixels);
+    item = list[0];
   }
   console.log(`Available resolutions: ${list.map((item) => item.resolution).join(', ')}`);
   console.log(`Highest resolution: ${item.resolution}, ${item.url}`);
@@ -71,5 +71,5 @@ const { readFile, writeFile } = require('fs/promises');
     console.error(`Failed to write "${urlFile}".`);
     process.exit(1);
   }
-  console.log(`Wrote "${urlFile}" file.`);
+  console.log(`Wrote the URL to "${urlFile}" file.`);
 })();
