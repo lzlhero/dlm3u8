@@ -49,8 +49,8 @@ const { readFile, writeFile } = require('fs/promises');
 
   var item;
   if (list.length === 0) {
-   // m3u8 doesn't contain sub-m3u8 url
-    console.log(`The "${inputM3u8File}" doesn't contain sub-m3u8 url.`);
+   // doesn't have a sub-m3u8 url
+    console.log("It doesn't have a sub-m3u8 URL.");
     process.exit(1);
   } else if (list.length === 1) {
     // only has one sub-m3u8 url
