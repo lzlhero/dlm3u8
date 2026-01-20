@@ -71,7 +71,6 @@ fn_dlm3u8() {
     fi
   fi
 
-  # ppm3u8
   # rebuild m3u8, generate aria2c file
   echo
   node "$(dirname "$0")/js/ppm3u8.js" "$input" "$url"
