@@ -54,7 +54,7 @@
   )
 
   echo.
-  echo "%input%" is a master m3u8. Try to parse the sub-m3u8 URL with the highest resolution.
+  echo "%input%" is a master m3u8. Try to parse the sub-m3u8 URL with the highest quality.
   node "%~dp0\js\subm3u8.js" "%input%" "%url%"
   if not %ERRORLEVEL%==0 (
     exit /b 1

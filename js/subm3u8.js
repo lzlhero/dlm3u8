@@ -34,15 +34,31 @@ const { readFile, writeFile } = require('fs/promises');
   var baseName = inputM3u8File.substring(0, inputM3u8File.lastIndexOf(".")) || inputM3u8File;
 
   // parse sub-m3u8 urls
-  var regex = /#EXT-X-STREAM-INF:.*RESOLUTION=(\d+)x(\d+).*\n([^#]*)/ig;
-  var list = [], result, url;
+  var regex = /#EXT-X-STREAM-INF:?([^\n]*)\n([^#]*)/ig;
+  var list = [], result, url, properties, matches, bandwidth, resolution;
   while ((result = regex.exec(m3u8Content)) !== null) {
-    url = result[3].trim();
+    url = result[2].trim();
     if (!url) continue;
 
+    bandwidth = 0;
+    resolution = "N/A";
+    properties = result[1].trim();
+    if (properties) {
+      matches = properties.match(/BANDWIDTH=([^,]*)/i);
+      if (matches) {
+        bandwidth = Number(matches[1]);
+        bandwidth = Number.isNaN(bandwidth) ? 0 : bandwidth;
+      }
+
+      matches = properties.match(/RESOLUTION=([^,]*)/i);
+      if (matches) {
+        resolution = matches[1];
+      }
+    }
+
     list.push({
-      pixels: result[1] * result[2],
-      resolution: `${result[1]}x${result[2]}`,
+      bandwidth: bandwidth,
+      resolution: resolution,
       url: (inputUrl ? new URL(url, inputUrl) : new URL(url)).href
     });
   }
@@ -56,12 +72,12 @@ const { readFile, writeFile } = require('fs/promises');
     // only has one sub-m3u8 url
     item = list[0];
   } else {
-    // get the highest resolution sub-m3u8 url
-    list.sort((item1, item2) => item2.pixels - item1.pixels);
-    item = list[0];
+    // get the highest quality sub-m3u8 url
+    list.sort((item1, item2) => item1.bandwidth - item2.bandwidth);
+    item = list[list.length - 1];
   }
-  console.log(`Available resolutions: ${list.map((item) => item.resolution).join(', ')}`);
-  console.log(`Highest resolution: ${item.resolution}, ${item.url}`);
+  console.log(`Available resolutions: ${list.map((item) => item.resolution + "(bw:" + item.bandwidth + ")").join(', ')}`);
+  console.log(`Highest quality: ${item.resolution}(bw:${item.bandwidth}), ${item.url}`);
 
   // save m3u8 url file
   var urlFile = `${baseName}_url.txt`;
