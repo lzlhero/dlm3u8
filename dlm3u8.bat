@@ -54,7 +54,7 @@
   )
 
   echo.
-  echo "%input%" is a master m3u8. Try to parse the sub-m3u8 URL with the highest quality.
+  echo "%input%" is a master playlist. Try to parse the sub-playlist URL with the highest quality.
   node "%~dp0\js\subm3u8.js" "%input%" "%url%"
   if not %ERRORLEVEL%==0 (
     exit /b 1
@@ -66,9 +66,9 @@
   echo.
   aria2c --allow-overwrite=true --continue=false --split=1 -q -o "%input%" "%url%" >NUL 2>&1
   if %ERRORLEVEL%==0 (
-    echo Download sub-m3u8 "%url%" as "%input%" OK.
+    echo Download "%url%" as "%input%" OK.
   ) else (
-    echo Error: Failed to download sub-m3u8 "%url%"
+    echo Error: Failed to download "%url%"
     exit /b 1
   )
 
