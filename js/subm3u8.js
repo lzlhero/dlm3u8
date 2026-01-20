@@ -33,7 +33,7 @@ const { readFile, writeFile } = require('fs/promises');
   // get basename
   var baseName = inputM3u8File.substring(0, inputM3u8File.lastIndexOf(".")) || inputM3u8File;
 
-  // parse sub-m3u8 urls
+  // parse sub-playlist urls
   var regex = /#EXT-X-STREAM-INF:?([^\n]*)\n([^#]*)/ig;
   var list = [], result, url, properties, bandwidth, resolution, matches;
   while ((result = regex.exec(m3u8Content)) !== null) {
@@ -65,14 +65,14 @@ const { readFile, writeFile } = require('fs/promises');
 
   var choice;
   if (list.length === 0) {
-   // doesn't have a sub-m3u8 url
-    console.log("It doesn't have a sub-m3u8 URL.");
+   // doesn't have a sub-playlist url
+    console.log("It doesn't have a sub-playlist URL.");
     process.exit(1);
   } else if (list.length === 1) {
-    // only has one sub-m3u8 url
+    // only has one sub-playlist url
     choice = list[0];
   } else {
-    // get the highest quality sub-m3u8 url
+    // get the highest quality sub-playlist url
     list.sort((item1, item2) => item1.bandwidth - item2.bandwidth);
     choice = list[list.length - 1];
   }

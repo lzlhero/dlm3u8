@@ -62,7 +62,7 @@
   set /p url=<"%input_url%"
   del /f /q "%input_url%"
 
-  :: download sub-m3u8 file
+  :: download sub-playlist file
   echo.
   aria2c --allow-overwrite=true --continue=false --split=1 -q -o "%input%" "%url%" >NUL 2>&1
   if %ERRORLEVEL%==0 (
