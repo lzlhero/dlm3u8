@@ -76,7 +76,7 @@ const { readFile, writeFile } = require('fs/promises');
     list.sort((item1, item2) => item1.bandwidth - item2.bandwidth);
     choice = list[list.length - 1];
   }
-  console.log(`Resolutions: ${list.map((item) => item.resolution + "(bw:" + item.bandwidth + ")").join(', ')}`);
+  console.log(`Resolutions: ${list.map((item) => `${item.resolution}(bw:${item.bandwidth})`).join(', ')}`);
   console.log(`Highest quality: ${choice.resolution}(bw:${choice.bandwidth}), ${choice.url}`);
 
   // save m3u8 url file
