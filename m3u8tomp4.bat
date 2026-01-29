@@ -34,8 +34,8 @@ if /i "%ext%"==".mp4" (
 set "input=%~1"
 set "input_resources=%input%_resources"
 set "output=%basename%.mp4"
-set "scan_log=%basename%_ffmpeg_scan.log"
-set "merge_log=%basename%_ffmpeg_merge.log"
+set "scan_log=%basename%_scan.log"
+set "merge_log=%basename%_merge.log"
 
 :: validate output file name
 if not exist "%output%" (

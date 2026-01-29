@@ -33,8 +33,8 @@ fi
 input="$1"
 input_resources="${input}_resources"
 output="${basename}.mp4"
-scan_log="${basename}_ffmpeg_scan.log"
-merge_log="${basename}_ffmpeg_merge.log"
+scan_log="${basename}_scan.log"
+merge_log="${basename}_merge.log"
 
 # validate output file name
 if [[ ! -f "$output" ]]; then
