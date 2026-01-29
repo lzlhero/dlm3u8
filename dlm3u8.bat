@@ -24,8 +24,8 @@
   set "input_resources=%input%_resources"
   set "output=%basename%.mp4"
   set "aria2c_input=%basename%_aria2c.txt"
-  set "scan_log=%basename%_ffmpeg_scan.log"
-  set "merge_log=%basename%_ffmpeg_merge.log"
+  set "scan_log=%basename%_scan.log"
+  set "merge_log=%basename%_merge.log"
 
   :: validate output file name
   if not exist "%output%" (
