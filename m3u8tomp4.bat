@@ -32,7 +32,7 @@ if /i "%ext%"==".mp4" (
 
 :: set files' name
 set "input=%~1"
-set "input_resources=%input%_resources"
+set "input_resources=%basename%_resources"
 set "output=%basename%.mp4"
 set "scan_log=%basename%_scan.log"
 set "merge_log=%basename%_merge.log"

@@ -31,7 +31,7 @@ fi
 
 # set files' name
 input="$1"
-input_resources="${input}_resources"
+input_resources="${basename}_resources"
 output="${basename}.mp4"
 scan_log="${basename}_scan.log"
 merge_log="${basename}_merge.log"

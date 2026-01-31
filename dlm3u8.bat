@@ -21,7 +21,7 @@
   :: set files' name
   set "input=%basename%.m3u8"
   set "input_url=%basename%_url.txt"
-  set "input_resources=%input%_resources"
+  set "input_resources=%basename%_resources"
   set "output=%basename%.mp4"
   set "aria2c_input=%basename%_aria2c.txt"
   set "scan_log=%basename%_scan.log"

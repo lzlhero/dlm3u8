@@ -42,7 +42,7 @@ const flag = '\n# rebuilder: ppm3u8';
   var baseName = inputM3u8File.substring(0, inputM3u8File.lastIndexOf(".")) || inputM3u8File;
 
   // define download dir
-  const dir = `${inputM3u8File}_resources`;
+  const dir = `${baseName}_resources`;
 
   // define list file lines
   var listFileLines = [];
