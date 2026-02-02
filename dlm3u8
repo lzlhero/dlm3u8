@@ -22,7 +22,7 @@ fn_dlm3u8() {
   # set files' name
   input="${basename}.m3u8"
   input_url="${basename}_url.txt"
-  input_resources="${baseName}_resources"
+  input_resources="${basename}_resources"
   output="${basename}.mp4"
   aria2c_input="${basename}_aria2c.txt"
   scan_log="${basename}_scan.log"
